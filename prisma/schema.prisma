@@ -18,11 +18,13 @@ model Cliente {
 }
 
 model Producto {
-  id         Int        @id @default(autoincrement())
+  id         Int                  @id @default(autoincrement())
   nombre     String
   id_categoria Int
-  categoria  Categoria  @relation(fields: [id_categoria], references: [id])
+  categoria  Categoria            @relation(fields: [id_categoria], references: [id])
   lineas     Linea[] 
+  
+  ingredientes Producto_Ingrediente[] 
 }
 
 model Categoria {
@@ -87,6 +89,8 @@ model Ingrediente {
   nombre    String
   unidad_medida String
   detalles  Detalle_compra[] 
+  
+  productos  Producto_Ingrediente[] 
 }
 
 model Lote {
@@ -95,4 +99,16 @@ model Lote {
   cantidad_consumida Float   @default(0)
   
   detalle_compra    Detalle_compra @relation(fields: [id_detalle_compra], references: [id])
+}
+
+model Producto_Ingrediente {
+  id             Int          @id @default(autoincrement())
+  id_producto    Int
+  id_ingrediente Int
+  cantidad       Float       
+
+  producto       Producto     @relation(fields: [id_producto], references: [id], onDelete: Cascade)
+  ingrediente    Ingrediente  @relation(fields: [id_ingrediente], references: [id], onDelete: Cascade)
+
+  @@unique([id_producto, id_ingrediente]) 
 }
