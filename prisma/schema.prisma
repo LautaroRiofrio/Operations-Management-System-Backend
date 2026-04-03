@@ -14,8 +14,8 @@ datasource db {
 model Cliente {
   id        Int      @id @default(autoincrement())
   nombre    String
-  whatsapp  Int      // En Prisma se usa Int para números grandes como teléfonos
-  ordenes   Orden[]  // Relación: Un cliente tiene muchas órdenes
+  whatsapp  Int      
+  ordenes   Orden[]  
 }
 
 model Producto {
@@ -23,23 +23,23 @@ model Producto {
   nombre     String
   id_categoria Int
   categoria  Categoria  @relation(fields: [id_categoria], references: [id])
-  lineas     Linea[]    // Relación: Un producto aparece en muchas líneas de orden
+  lineas     Linea[] 
 }
 
 model Categoria {
   id        Int       @id @default(autoincrement())
   nombre    String
-  productos Producto[] // Relación: Una categoría tiene muchos productos
+  productos Producto[] 
 }
 
 model Orden {
   id             Int      @id @default(autoincrement())
   id_cliente     Int
   fecha_entrega  DateTime
-  estado         Int      // 1: Pendiente, 2: En proceso, etc.
+  estado         Int   
   
   cliente        Cliente  @relation(fields: [id_cliente], references: [id])
-  lineas         Linea[]  // Relación: Una orden tiene muchas líneas de detalle
+  lineas         Linea[]
 }
 
 model Linea {
@@ -52,12 +52,12 @@ model Linea {
   producto    Producto @relation(fields: [id_producto], references: [id])
 }
 
-// --- TABLAS DE COMPRAS E INVENTARIO ---
+
 
 model Proveedor {
   id       Int      @id @default(autoincrement())
   nombre   String
-  compras  Compra[] // Relación: Un proveedor hace muchas compras
+  compras  Compra[]
 }
 
 model Compra {
@@ -80,18 +80,16 @@ model Detalle_compra {
   compra            Compra   @relation(fields: [id_compra], references: [id])
   ingrediente       Ingrediente @relation(fields: [id_ingredientes], references: [id])
   
-  // AGREGA ESTA LÍNEA AQUÍ:
-  lotes             Lote[]   // Un detalle de compra puede tener muchos lotes
+  lotes             Lote[]   
 }
 
 model Ingrediente {
   id        Int             @id @default(autoincrement())
   nombre    String
   unidad_medida String
-  detalles  Detalle_compra[] // Relación: Un ingrediente está en muchos detalles de compra
+  detalles  Detalle_compra[] 
 }
 
-// --- TABLA DE LOTES (Opcional según tu diagrama) ---
 model Lote {
   id                Int      @id @default(autoincrement())
   id_detalle_compra Int
