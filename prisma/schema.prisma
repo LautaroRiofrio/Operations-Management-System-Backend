@@ -1,4 +1,4 @@
-// prisma/schema.prisma
+
 
 generator client {
   provider = "prisma-client-js"
@@ -9,7 +9,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- TABLAS PRINCIPALES ---
 
 model Cliente {
   id        Int      @id @default(autoincrement())
