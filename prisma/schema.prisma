@@ -1,0 +1,101 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- TABLAS PRINCIPALES ---
+
+model Cliente {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  whatsapp  Int      // En Prisma se usa Int para números grandes como teléfonos
+  ordenes   Orden[]  // Relación: Un cliente tiene muchas órdenes
+}
+
+model Producto {
+  id         Int        @id @default(autoincrement())
+  nombre     String
+  id_categoria Int
+  categoria  Categoria  @relation(fields: [id_categoria], references: [id])
+  lineas     Linea[]    // Relación: Un producto aparece en muchas líneas de orden
+}
+
+model Categoria {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  productos Producto[] // Relación: Una categoría tiene muchos productos
+}
+
+model Orden {
+  id             Int      @id @default(autoincrement())
+  id_cliente     Int
+  fecha_entrega  DateTime
+  estado         Int      // 1: Pendiente, 2: En proceso, etc.
+  
+  cliente        Cliente  @relation(fields: [id_cliente], references: [id])
+  lineas         Linea[]  // Relación: Una orden tiene muchas líneas de detalle
+}
+
+model Linea {
+  id          Int      @id @default(autoincrement())
+  id_producto Int
+  cantidad    Int
+  id_orden    Int
+  
+  orden       Orden    @relation(fields: [id_orden], references: [id])
+  producto    Producto @relation(fields: [id_producto], references: [id])
+}
+
+// --- TABLAS DE COMPRAS E INVENTARIO ---
+
+model Proveedor {
+  id       Int      @id @default(autoincrement())
+  nombre   String
+  compras  Compra[] // Relación: Un proveedor hace muchas compras
+}
+
+model Compra {
+  id             Int             @id @default(autoincrement())
+  id_proveedor   Int
+  fecha_compra   DateTime @default(now())
+  
+  proveedor      Proveedor       @relation(fields: [id_proveedor], references: [id])
+  detalles       Detalle_compra[]
+}
+
+model Detalle_compra {
+  id                Int      @id @default(autoincrement())
+  id_compra         Int
+  id_ingredientes   Int
+  cantidad          Float
+  precio_unitario   Float
+  subtotal          Float
+  
+  compra            Compra   @relation(fields: [id_compra], references: [id])
+  ingrediente       Ingrediente @relation(fields: [id_ingredientes], references: [id])
+  
+  // AGREGA ESTA LÍNEA AQUÍ:
+  lotes             Lote[]   // Un detalle de compra puede tener muchos lotes
+}
+
+model Ingrediente {
+  id        Int             @id @default(autoincrement())
+  nombre    String
+  unidad_medida String
+  detalles  Detalle_compra[] // Relación: Un ingrediente está en muchos detalles de compra
+}
+
+// --- TABLA DE LOTES (Opcional según tu diagrama) ---
+model Lote {
+  id                Int      @id @default(autoincrement())
+  id_detalle_compra Int
+  cantidad_consumida Float   @default(0)
+  
+  detalle_compra    Detalle_compra @relation(fields: [id_detalle_compra], references: [id])
+}
