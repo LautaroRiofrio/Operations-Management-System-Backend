@@ -24,7 +24,7 @@ model Producto {
   categoria  Categoria            @relation(fields: [id_categoria], references: [id])
   lineas     Linea[] 
   
-  ingredientes Producto_Ingrediente[] 
+  preparacion Preparacion?     
 }
 
 model Categoria {
@@ -90,7 +90,8 @@ model Ingrediente {
   unidad_medida String
   detalles  Detalle_compra[] 
   
-  productos  Producto_Ingrediente[] 
+ 
+  preparaciones Preparacion_Ingrediente[] 
 }
 
 model Lote {
@@ -101,14 +102,24 @@ model Lote {
   detalle_compra    Detalle_compra @relation(fields: [id_detalle_compra], references: [id])
 }
 
-model Producto_Ingrediente {
-  id             Int          @id @default(autoincrement())
-  id_producto    Int
-  id_ingrediente Int
-  cantidad       Float       
 
-  producto       Producto     @relation(fields: [id_producto], references: [id], onDelete: Cascade)
-  ingrediente    Ingrediente  @relation(fields: [id_ingrediente], references: [id], onDelete: Cascade)
+model Preparacion {
+  id          Int                   @id @default(autoincrement())
+  id_producto Int
+  producto    Producto              @relation(fields: [id_producto], references: [id], onDelete: Cascade)
+  ingredientes Preparacion_Ingrediente[] // Una preparación tiene muchos ingredientes
 
-  @@unique([id_producto, id_ingrediente]) 
+  @@unique([id_producto]) 
+}
+
+model Preparacion_Ingrediente {
+  id               Int          @id @default(autoincrement())
+  id_preparacion   Int
+  id_ingrediente   Int
+  cantidad         Float  
+
+  preparacion      Preparacion  @relation(fields: [id_preparacion], references: [id], onDelete: Cascade)
+  ingrediente      Ingrediente  @relation(fields: [id_ingrediente], references: [id], onDelete: Cascade)
+
+  @@unique([id_preparacion, id_ingrediente])
 }
