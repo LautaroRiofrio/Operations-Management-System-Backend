@@ -1,7 +1,7 @@
 // src/routes/shoppingRoutes.ts
 import { Router } from 'express';
 import {
-    searchPurchase, savePurchase, getPurchaseById, getPurchaseProvider } from './shoppingController';
+    searchPurchase, savePurchase, getPurchaseById, getPurchaseProvider } from './purchaseController';
 
 const router = Router();
 
