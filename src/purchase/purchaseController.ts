@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export const searchShoppings = async (req: any, res: any) => {
+export const searchPurchase = async (req: any, res: any) => {
   try {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
@@ -34,7 +34,7 @@ export const searchShoppings = async (req: any, res: any) => {
   }
 };
 
-export const saveShopping = async (req: any, res: any) => {
+export const savePurchase = async (req: any, res: any) => {
   try {
     const { id_proveedor, fecha_compra } = req.body;
 
@@ -68,7 +68,7 @@ export const saveShopping = async (req: any, res: any) => {
   }
 };
 
-export const getShoppingById = async (req: any, res: any) => {
+export const getPurchaseById = async (req: any, res: any) => {
   try {
     const { id } = req.params;
     
@@ -90,7 +90,7 @@ export const getShoppingById = async (req: any, res: any) => {
   }
 };
 
-export const getShoppingProvider = async (req: any, res: any) => {
+export const getPurchaseProvider = async (req: any, res: any) => {
   try {
     const { providerId } = req.params;
 

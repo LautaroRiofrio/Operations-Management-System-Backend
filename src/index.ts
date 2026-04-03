@@ -2,7 +2,7 @@
 import express, { Request, Response } from 'express';
 import clientRoutes from './client/clientRoutes'; 
 import providerRoutes from './provider/providerRoutes';
-import shoppingRoutes from './shopping/shoppingRoutes'
+import purchaseRoutes from './purchase/purchaseRoutes'
 import ingredientRoutes from './ingredient/ingredientRoutes'
 const app = express();
 const PORT = 3000;
@@ -18,7 +18,7 @@ app.get('/', (req: Request, res: Response) => {
 // Rutas de la API
 app.use('/api/clients', clientRoutes);
 app.use('/api/provider', providerRoutes);
-app.use('/api/shopping', shoppingRoutes);
+app.use('/api/purchase', purchaseRoutes);
 app.use('/api/ingredient', ingredientRoutes);
 
 // Iniciar servidor
