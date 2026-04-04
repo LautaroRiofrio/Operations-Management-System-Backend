@@ -98,7 +98,7 @@ export const deleteIngredient = async (req: any, res: any) => {
     const { id } = req.params;
 
     const hasDetails = await prisma.detalle_compra.findFirst({
-      where: { id_ingredientes: Number(id) }
+      where: { id_ingrediente: Number(id) }
     });
 
     if (hasDetails) {

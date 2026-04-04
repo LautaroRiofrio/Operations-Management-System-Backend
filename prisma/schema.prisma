@@ -73,13 +73,13 @@ model Compra {
 model Detalle_compra {
   id                Int      @id @default(autoincrement())
   id_compra         Int
-  id_ingredientes   Int
+  id_ingrediente   Int
   cantidad          Float
   precio_unitario   Float
   subtotal          Float
   
   compra            Compra   @relation(fields: [id_compra], references: [id])
-  ingrediente       Ingrediente @relation(fields: [id_ingredientes], references: [id])
+  ingrediente       Ingrediente @relation(fields: [id_ingrediente], references: [id])
   
   lotes             Lote[]   
 }
@@ -97,7 +97,7 @@ model Ingrediente {
 model Lote {
   id                Int      @id @default(autoincrement())
   id_detalle_compra Int
-  cantidad_consumida Float   @default(0)
+  cantidad_restante Float   @default(0)
   
   detalle_compra    Detalle_compra @relation(fields: [id_detalle_compra], references: [id])
 }
