@@ -151,3 +151,65 @@ export const deleteOrder = async (req: any, res: any) => {
     res.status(500).json({ error: 'Error al eliminar orden' });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const searchOrdersByState = async (req: any, res: any) => {
+  try {
+    const { state } = req.params; 
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
+    const skip = (page - 1) * pageSize;
+
+    const ordersRaw = await prisma.orden.findMany({
+      skip: skip,
+      take: pageSize,
+      where: { 
+        estado: Number(state) 
+      },
+      include: {
+        cliente: true,
+        lineas: {
+          include: {
+            producto: true 
+          }
+        }
+      },
+      orderBy: { id: 'desc' }
+    });
+
+    const ordersFormatted = ordersRaw.map((orden: any) => {
+      const totalPedido = orden.lineas.reduce((sum: number, linea: any) => {
+
+        const precio = linea.producto?.precio || 0;
+        return sum + (linea.cantidad * precio);
+      }, 0);
+
+      return {
+        id: orden.id,
+        nombre_cliente: orden.cliente.nombre,
+        fecha_entrega: orden.fecha_entrega,
+        total: totalPedido
+      };
+    });
+
+    const total = await prisma.orden.count({ where: { estado: Number(state) } });
+
+    res.json({
+      data: ordersFormatted,
+      meta: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al buscar órdenes por estado' });
+  }
+};

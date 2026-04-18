@@ -1,8 +1,9 @@
-
+// src/controllers/productController.ts
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// 1. Buscar productos (con paginación)
 export const searchProducts = async (req: any, res: any) => {
   try {
     const page = Number(req.query.page) || 1;
@@ -13,12 +14,11 @@ export const searchProducts = async (req: any, res: any) => {
       skip: skip,
       take: pageSize,
       where: {
-    
         nombre: req.query.q ? { contains: req.query.q, mode: 'insensitive' } : undefined
       },
       include: {
-        categoria: true,           
-        preparacion: {             
+        categoria: true,
+        preparacion: {
           include: {
             ingredientes: {
               include: { ingrediente: true }
@@ -40,7 +40,7 @@ export const searchProducts = async (req: any, res: any) => {
   }
 };
 
-
+// 2. Obtener producto por ID
 export const getProductById = async (req: any, res: any) => {
   try {
     const { id } = req.params;
@@ -49,7 +49,7 @@ export const getProductById = async (req: any, res: any) => {
       where: { id: Number(id) },
       include: {
         categoria: true,
-        lineas: true, 
+        lineas: true,
         preparacion: {
           include: {
             ingredientes: { include: { ingrediente: true } }
@@ -66,7 +66,7 @@ export const getProductById = async (req: any, res: any) => {
   }
 };
 
-
+// 3. Obtener productos por categoría
 export const getProductsByCategory = async (req: any, res: any) => {
   try {
     const { categoryId } = req.params;
@@ -83,9 +83,11 @@ export const getProductsByCategory = async (req: any, res: any) => {
   }
 };
 
+// 4. Crear nuevo producto (SAVE) - ACTUALIZADO
 export const saveProduct = async (req: any, res: any) => {
   try {
-    const { nombre, id_categoria } = req.body;
+    // Agregamos 'precio' a la desestructuración
+    const { nombre, id_categoria, precio } = req.body;
 
     if (!nombre || !id_categoria) {
       return res.status(400).json({ error: 'El nombre y la categoría son obligatorios' });
@@ -94,22 +96,25 @@ export const saveProduct = async (req: any, res: any) => {
     const newProduct = await prisma.producto.create({
       data: {
         nombre,
-        id_categoria: Number(id_categoria)
+        id_categoria: Number(id_categoria),
+        precio: Number(precio) || 0 // AGREGADO: Guardar el precio
       },
       include: { categoria: true }
     });
 
     res.status(201).json(newProduct);
   } catch (error) {
-    console.error("ERROR DETALLADO AL CREAR PRODUCTO:", error); // <--- AGREGA ESTO
+    console.error("ERROR DETALLADO AL CREAR PRODUCTO:", error);
     res.status(500).json({ error: 'Error al crear producto' });
   }
 };
 
+// 5. Actualizar producto - ACTUALIZADO
 export const updateProduct = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { nombre, id_categoria } = req.body;
+    // Agregamos 'precio' a la desestructuración
+    const { nombre, id_categoria, precio } = req.body;
 
     const productExists = await prisma.producto.findUnique({
       where: { id: Number(id) }
@@ -121,7 +126,8 @@ export const updateProduct = async (req: any, res: any) => {
       where: { id: Number(id) },
       data: {
         nombre,
-        id_categoria: id_categoria ? Number(id_categoria) : undefined
+        id_categoria: id_categoria ? Number(id_categoria) : undefined,
+        precio: precio !== undefined ? Number(precio) : undefined // AGREGADO: Actualizar precio si se envía
       },
       include: { categoria: true }
     });
@@ -132,6 +138,7 @@ export const updateProduct = async (req: any, res: any) => {
   }
 };
 
+// 6. Eliminar producto
 export const deleteProduct = async (req: any, res: any) => {
   try {
     const { id } = req.params;

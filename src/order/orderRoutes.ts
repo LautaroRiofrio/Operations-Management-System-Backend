@@ -6,7 +6,8 @@ import {
   getOrdersByClient, 
   saveOrder, 
   updateOrder, 
-  deleteOrder 
+  deleteOrder, 
+  searchOrdersByState
 } from './orderController';
 
 const router = Router();
@@ -15,7 +16,7 @@ router.get('/', searchOrders);
 router.post('/', saveOrder);
 
 router.get('/client/:clientId', getOrdersByClient);
-
+router.get('/state/:state', searchOrdersByState);
 router.get('/:id', getOrderById);
 router.put('/:id', updateOrder);
 router.delete('/:id', deleteOrder);

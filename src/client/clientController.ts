@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 
 export const searchClients = async (req: any, res: any) => {
   try {
-    
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
 

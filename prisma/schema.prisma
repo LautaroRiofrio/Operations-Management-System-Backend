@@ -1,7 +1,8 @@
 
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -20,6 +21,7 @@ model Cliente {
 model Producto {
   id         Int                  @id @default(autoincrement())
   nombre     String
+  precio     Float
   id_categoria Int
   categoria  Categoria            @relation(fields: [id_categoria], references: [id])
   lineas     Linea[] 
