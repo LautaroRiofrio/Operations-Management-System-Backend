@@ -1,0 +1,2021 @@
+openapi: 3.0.3
+info:
+  title: Operations Management System API
+  version: 1.0.0
+  description: |
+    Especificación OpenAPI generada a partir de las rutas y controladores actuales del proyecto.
+    Documenta los endpoints expuestos bajo `/api` y el endpoint raíz de verificación.
+servers:
+  - url: http://localhost:3000
+    description: Servidor local por defecto
+tags:
+  - name: Health
+  - name: Clients
+  - name: Providers
+  - name: Purchases
+  - name: Purchase Details
+  - name: Batches
+  - name: Ingredients
+  - name: Categories
+  - name: Products
+  - name: Recipes
+  - name: Orders
+  - name: Lines
+paths:
+  /:
+    get:
+      tags: [Health]
+      summary: Verifica que la API esté funcionando
+      responses:
+        '200':
+          description: Mensaje de disponibilidad
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: API funcionando
+
+  /api/clients:
+    get:
+      tags: [Clients]
+      summary: Lista clientes con paginación
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Clientes paginados
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Client'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Clients]
+      summary: Crea un cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreateInput'
+      responses:
+        '201':
+          description: Cliente creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/clients/{id}:
+    get:
+      tags: [Clients]
+      summary: Obtiene un cliente por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          description: Cliente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/provider:
+    get:
+      tags: [Providers]
+      summary: Lista proveedores con paginación
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Proveedores paginados
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Provider'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Providers]
+      summary: Crea un proveedor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderCreateInput'
+      responses:
+        '201':
+          description: Proveedor creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Provider'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/provider/{id}:
+    get:
+      tags: [Providers]
+      summary: Obtiene un proveedor por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Proveedor encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Provider'
+        '404':
+          description: Proveedor no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/purchase:
+    get:
+      tags: [Purchases]
+      summary: Lista compras con paginación
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: providerId
+          in: query
+          schema:
+            type: integer
+          description: Filtra compras por proveedor
+      responses:
+        '200':
+          description: Compras paginadas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PurchaseWithProvider'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Purchases]
+      summary: Crea una compra
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseCreateInput'
+      responses:
+        '201':
+          description: Compra creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseWithProvider'
+        '400':
+          description: Faltan datos obligatorios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Proveedor inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/purchase/{id}:
+    get:
+      tags: [Purchases]
+      summary: Obtiene una compra por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Compra encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseWithProvider'
+        '404':
+          description: Compra no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/purchase/provider/{providerId}:
+    get:
+      tags: [Purchases]
+      summary: Lista compras por proveedor
+      parameters:
+        - $ref: '#/components/parameters/ProviderId'
+      responses:
+        '200':
+          description: Compras del proveedor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseWithProvider'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/purchaseDetail:
+    get:
+      tags: [Purchase Details]
+      summary: Lista detalles de compra con paginación
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Detalles de compra paginados
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PurchaseDetailExpanded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Purchase Details]
+      summary: Crea un detalle de compra
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseDetailCreateInput'
+      responses:
+        '201':
+          description: Detalle creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseDetailExpanded'
+        '400':
+          description: Faltan datos obligatorios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/purchaseDetail/{id}:
+    get:
+      tags: [Purchase Details]
+      summary: Obtiene un detalle de compra por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Detalle encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseDetailExpanded'
+        '404':
+          description: Detalle no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/purchaseDetail/purchase/{purchaseId}:
+    get:
+      tags: [Purchase Details]
+      summary: Lista detalles por compra
+      parameters:
+        - $ref: '#/components/parameters/PurchaseId'
+      responses:
+        '200':
+          description: Detalles de la compra
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseDetailWithIngredient'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/purchaseDetail/ingredient/{ingredientId}:
+    get:
+      tags: [Purchase Details]
+      summary: Lista historial de compras de un ingrediente
+      parameters:
+        - $ref: '#/components/parameters/IngredientId'
+      responses:
+        '200':
+          description: Historial por ingrediente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseDetailWithPurchaseProvider'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/batch:
+    get:
+      tags: [Batches]
+      summary: Lista lotes con paginación
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Lotes paginados
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BatchExpanded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Batches]
+      summary: Crea un lote a partir de un detalle de compra
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchCreateInput'
+      responses:
+        '201':
+          description: Lote creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchWithPurchaseDetail'
+        '404':
+          description: Detalle de compra no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/batch/purchaseDetail/{purchaseDetailId}:
+    get:
+      tags: [Batches]
+      summary: Obtiene el lote asociado a un detalle de compra
+      parameters:
+        - $ref: '#/components/parameters/PurchaseDetailId'
+      responses:
+        '200':
+          description: Lote encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchByPurchaseDetail'
+        '404':
+          description: Detalle o lote no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/batch/oldest/{ingredientId}:
+    get:
+      tags: [Batches]
+      summary: Obtiene el lote con stock más antiguo para un ingrediente
+      parameters:
+        - $ref: '#/components/parameters/IngredientId'
+      responses:
+        '200':
+          description: Lote más antiguo con stock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchWithPurchaseDetail'
+        '404':
+          description: Sin compras o sin stock disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/batch/ingredient/{ingredientId}:
+    get:
+      tags: [Batches]
+      summary: Lista lotes por ingrediente
+      parameters:
+        - $ref: '#/components/parameters/IngredientId'
+      responses:
+        '200':
+          description: Lotes del ingrediente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BatchWithDetailIngredient'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/batch/{id}:
+    get:
+      tags: [Batches]
+      summary: Obtiene un lote por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Lote encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchWithDetailIngredient'
+        '404':
+          description: Lote no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [Batches]
+      summary: Actualiza la cantidad restante de un lote
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchUpdateInput'
+      responses:
+        '200':
+          description: Lote actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Batch'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/batch/{id}/consume:
+    patch:
+      tags: [Batches]
+      summary: Consume stock desde un lote
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchConsumeInput'
+      responses:
+        '200':
+          description: Consumo registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchConsumeResponse'
+        '400':
+          description: Cantidad inválida o stock insuficiente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Lote no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/ingredient:
+    get:
+      tags: [Ingredients]
+      summary: Lista ingredientes con paginación y filtro por nombre
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SearchQ'
+      responses:
+        '200':
+          description: Ingredientes paginados
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Ingredient'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Ingredients]
+      summary: Crea un ingrediente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngredientInput'
+      responses:
+        '201':
+          description: Ingrediente creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '400':
+          description: Datos faltantes o nombre duplicado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/ingredient/{id}:
+    get:
+      tags: [Ingredients]
+      summary: Obtiene un ingrediente por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Ingrediente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '404':
+          description: Ingrediente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [Ingredients]
+      summary: Actualiza un ingrediente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngredientInput'
+      responses:
+        '200':
+          description: Ingrediente actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '404':
+          description: Ingrediente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Ingredients]
+      summary: Elimina un ingrediente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Ingrediente eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Tiene registros asociados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/category:
+    get:
+      tags: [Categories]
+      summary: Lista categorías con paginación y filtro por nombre
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SearchQ'
+      responses:
+        '200':
+          description: Categorías paginadas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Category'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Categories]
+      summary: Crea una categoría
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '201':
+          description: Categoría creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Nombre faltante o duplicado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/category/{id}:
+    get:
+      tags: [Categories]
+      summary: Obtiene una categoría por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Categoría encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryWithProducts'
+        '404':
+          description: Categoría no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [Categories]
+      summary: Actualiza una categoría
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '200':
+          description: Categoría actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          description: Categoría no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Categories]
+      summary: Elimina una categoría
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Categoría eliminada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Tiene productos asociados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/product:
+    get:
+      tags: [Products]
+      summary: Lista productos con paginación y filtro por nombre
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SearchQ'
+      responses:
+        '200':
+          description: Productos paginados
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProductExpanded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Products]
+      summary: Crea un producto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Producto creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductWithCategory'
+        '400':
+          description: Datos obligatorios faltantes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/product/{id}:
+    get:
+      tags: [Products]
+      summary: Obtiene un producto por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductById'
+        '404':
+          description: Producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [Products]
+      summary: Actualiza un producto
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateInput'
+      responses:
+        '200':
+          description: Producto actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductWithCategory'
+        '404':
+          description: Producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Products]
+      summary: Elimina un producto
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Producto eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Tiene órdenes asociadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/product/category/{categoryId}:
+    get:
+      tags: [Products]
+      summary: Lista productos por categoría
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '200':
+          description: Productos de la categoría
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductWithCategory'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/recipe:
+    get:
+      tags: [Recipes]
+      summary: Lista recetas con paginación
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Recetas paginadas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RecipeExpanded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Recipes]
+      summary: Crea una receta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeInput'
+      responses:
+        '201':
+          description: Receta creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeFull'
+        '400':
+          description: Falta el producto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Producto inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/recipe/product/{productId}:
+    get:
+      tags: [Recipes]
+      summary: Obtiene la receta asociada a un producto
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200':
+          description: Receta encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeWithIngredients'
+        '404':
+          description: Producto sin receta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/recipe/ingredients/{id}:
+    get:
+      tags: [Recipes]
+      summary: Obtiene solo los ingredientes de una receta
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Ingredientes de la receta
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PreparationIngredient'
+        '404':
+          description: Receta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/recipe/{id}:
+    get:
+      tags: [Recipes]
+      summary: Obtiene una receta por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Receta encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeFull'
+        '404':
+          description: Receta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [Recipes]
+      summary: Reemplaza los ingredientes de una receta
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ingredientes]
+              properties:
+                ingredientes:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/PreparationIngredientInput'
+      responses:
+        '200':
+          description: Receta actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeWithIngredients'
+        '404':
+          description: Receta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Recipes]
+      summary: Elimina una receta
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Receta eliminada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/order:
+    get:
+      tags: [Orders]
+      summary: Lista órdenes con paginación
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Órdenes paginadas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OrderSummary'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Orders]
+      summary: Crea una orden
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderInput'
+      responses:
+        '201':
+          description: Orden creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderWithClient'
+        '400':
+          description: Falta id_cliente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/order/client/{clientId}:
+    get:
+      tags: [Orders]
+      summary: Lista órdenes de un cliente
+      parameters:
+        - $ref: '#/components/parameters/ClientId'
+      responses:
+        '200':
+          description: Órdenes del cliente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderClientSummary'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/order/state/{state}:
+    get:
+      tags: [Orders]
+      summary: Lista órdenes por estado
+      parameters:
+        - name: state
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Estado numérico de la orden
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Órdenes filtradas por estado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OrderStateSummary'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/order/{id}:
+    get:
+      tags: [Orders]
+      summary: Obtiene una orden por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Orden encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderFull'
+        '404':
+          description: Orden no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [Orders]
+      summary: Actualiza una orden
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderUpdateInput'
+      responses:
+        '200':
+          description: Orden actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderWithClient'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Orders]
+      summary: Elimina una orden
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Orden eliminada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Tiene líneas asociadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/line/order/{orderId}:
+    get:
+      tags: [Lines]
+      summary: Lista líneas de una orden
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Líneas de la orden
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LineWithProduct'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/line:
+    post:
+      tags: [Lines]
+      summary: Crea una línea de orden
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LineInput'
+      responses:
+        '201':
+          description: Línea creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LineWithProduct'
+        '400':
+          description: Faltan datos obligatorios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/line/{id}:
+    get:
+      tags: [Lines]
+      summary: Endpoint no implementado para obtener línea por ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '501':
+          description: No implementado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: Use searchLinesByOrder
+    put:
+      tags: [Lines]
+      summary: Actualiza una línea
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LineUpdateInput'
+      responses:
+        '200':
+          description: Línea actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LineWithProduct'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Lines]
+      summary: Elimina una línea
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Línea eliminada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        default: 10
+    SearchQ:
+      name: q
+      in: query
+      schema:
+        type: string
+      description: Texto de búsqueda por nombre
+    ClientId:
+      name: clientId
+      in: path
+      required: true
+      schema:
+        type: integer
+    ProviderId:
+      name: providerId
+      in: path
+      required: true
+      schema:
+        type: integer
+    PurchaseId:
+      name: purchaseId
+      in: path
+      required: true
+      schema:
+        type: integer
+    PurchaseDetailId:
+      name: purchaseDetailId
+      in: path
+      required: true
+      schema:
+        type: integer
+    IngredientId:
+      name: ingredientId
+      in: path
+      required: true
+      schema:
+        type: integer
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      schema:
+        type: integer
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: integer
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: integer
+  responses:
+    InternalError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        whatsapp:
+          type: integer
+      required: [id, nombre, whatsapp]
+    ClientCreateInput:
+      type: object
+      properties:
+        nombre:
+          type: string
+        whatsapp:
+          type: integer
+      required: [nombre, whatsapp]
+
+    Provider:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+      required: [id, nombre]
+    ProviderCreateInput:
+      type: object
+      properties:
+        nombre:
+          type: string
+      required: [nombre]
+
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        unidad_medida:
+          type: string
+      required: [id, nombre, unidad_medida]
+    IngredientInput:
+      type: object
+      properties:
+        nombre:
+          type: string
+        unidad_medida:
+          type: string
+      required: [nombre, unidad_medida]
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+      required: [id, nombre]
+    CategoryInput:
+      type: object
+      properties:
+        nombre:
+          type: string
+      required: [nombre]
+    CategoryWithProducts:
+      allOf:
+        - $ref: '#/components/schemas/Category'
+        - type: object
+          properties:
+            productos:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        precio:
+          type: number
+          format: float
+        id_categoria:
+          type: integer
+      required: [id, nombre, precio, id_categoria]
+    ProductWithCategory:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          properties:
+            categoria:
+              $ref: '#/components/schemas/Category'
+    ProductExpanded:
+      allOf:
+        - $ref: '#/components/schemas/ProductWithCategory'
+        - type: object
+          properties:
+            preparacion:
+              nullable: true
+              allOf:
+                - $ref: '#/components/schemas/RecipeWithIngredients'
+    ProductById:
+      allOf:
+        - $ref: '#/components/schemas/ProductWithCategory'
+        - type: object
+          properties:
+            lineas:
+              type: array
+              items:
+                $ref: '#/components/schemas/Line'
+            preparacion:
+              nullable: true
+              allOf:
+                - $ref: '#/components/schemas/RecipeWithIngredients'
+    ProductInput:
+      type: object
+      properties:
+        nombre:
+          type: string
+        id_categoria:
+          type: integer
+        precio:
+          type: number
+          format: float
+      required: [nombre, id_categoria]
+    ProductUpdateInput:
+      type: object
+      properties:
+        nombre:
+          type: string
+        id_categoria:
+          type: integer
+        precio:
+          type: number
+          format: float
+
+    Purchase:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_proveedor:
+          type: integer
+        fecha_compra:
+          type: string
+          format: date-time
+      required: [id, id_proveedor, fecha_compra]
+    PurchaseWithProvider:
+      allOf:
+        - $ref: '#/components/schemas/Purchase'
+        - type: object
+          properties:
+            proveedor:
+              $ref: '#/components/schemas/Provider'
+    PurchaseCreateInput:
+      type: object
+      properties:
+        id_proveedor:
+          type: integer
+        fecha_compra:
+          type: string
+          format: date-time
+      required: [id_proveedor]
+
+    PurchaseDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_compra:
+          type: integer
+        id_ingrediente:
+          type: integer
+        cantidad:
+          type: number
+          format: float
+        precio_unitario:
+          type: number
+          format: float
+        subtotal:
+          type: number
+          format: float
+      required: [id, id_compra, id_ingrediente, cantidad, precio_unitario, subtotal]
+    PurchaseDetailWithIngredient:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseDetail'
+        - type: object
+          properties:
+            ingrediente:
+              $ref: '#/components/schemas/Ingredient'
+    PurchaseDetailWithPurchaseProvider:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseDetail'
+        - type: object
+          properties:
+            compra:
+              $ref: '#/components/schemas/PurchaseWithProvider'
+    PurchaseDetailExpanded:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseDetail'
+        - type: object
+          properties:
+            compra:
+              $ref: '#/components/schemas/PurchaseWithProvider'
+            ingrediente:
+              $ref: '#/components/schemas/Ingredient'
+    PurchaseDetailCreateInput:
+      type: object
+      properties:
+        id_compra:
+          type: integer
+        id_ingrediente:
+          type: integer
+        cantidad:
+          type: number
+          format: float
+        precio_unitario:
+          type: number
+          format: float
+      required: [id_compra, id_ingrediente, cantidad, precio_unitario]
+
+    Batch:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_detalle_compra:
+          type: integer
+        cantidad_restante:
+          type: number
+          format: float
+      required: [id, id_detalle_compra, cantidad_restante]
+    BatchWithPurchaseDetail:
+      allOf:
+        - $ref: '#/components/schemas/Batch'
+        - type: object
+          properties:
+            detalle_compra:
+              $ref: '#/components/schemas/PurchaseDetail'
+    BatchWithDetailIngredient:
+      allOf:
+        - $ref: '#/components/schemas/Batch'
+        - type: object
+          properties:
+            detalle_compra:
+              allOf:
+                - $ref: '#/components/schemas/PurchaseDetail'
+                - type: object
+                  properties:
+                    ingrediente:
+                      $ref: '#/components/schemas/Ingredient'
+    BatchExpanded:
+      allOf:
+        - $ref: '#/components/schemas/Batch'
+        - type: object
+          properties:
+            detalle_compra:
+              allOf:
+                - $ref: '#/components/schemas/PurchaseDetail'
+                - type: object
+                  properties:
+                    ingrediente:
+                      $ref: '#/components/schemas/Ingredient'
+                    compra:
+                      $ref: '#/components/schemas/PurchaseWithProvider'
+    BatchByPurchaseDetail:
+      allOf:
+        - $ref: '#/components/schemas/Batch'
+        - type: object
+          properties:
+            detalle_compra:
+              type: object
+              properties:
+                id:
+                  type: integer
+                cantidad:
+                  type: number
+                  format: float
+                ingrediente:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    nombre:
+                      type: string
+    BatchCreateInput:
+      type: object
+      properties:
+        id_detalle_compra:
+          type: integer
+        cantidad_restante:
+          type: number
+          format: float
+          description: Campo ignorado por el controlador actual; la API usa la cantidad del detalle de compra.
+      required: [id_detalle_compra]
+    BatchUpdateInput:
+      type: object
+      properties:
+        cantidad_restante:
+          type: number
+          format: float
+      required: [cantidad_restante]
+    BatchConsumeInput:
+      type: object
+      properties:
+        cantidad_a_consumir:
+          type: number
+          format: float
+      required: [cantidad_a_consumir]
+    BatchConsumeResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        lote:
+          $ref: '#/components/schemas/Batch'
+      required: [message, lote]
+    Recipe:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_producto:
+          type: integer
+      required: [id, id_producto]
+    PreparationIngredient:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_preparacion:
+          type: integer
+        id_ingrediente:
+          type: integer
+        cantidad:
+          type: number
+          format: float
+      required: [id, id_preparacion, id_ingrediente, cantidad]
+    PreparationIngredientWithIngredient:
+      allOf:
+        - $ref: '#/components/schemas/PreparationIngredient'
+        - type: object
+          properties:
+            ingrediente:
+              $ref: '#/components/schemas/Ingredient'
+    PreparationIngredientInput:
+      type: object
+      properties:
+        id_ingrediente:
+          type: integer
+        cantidad:
+          type: number
+          format: float
+      required: [id_ingrediente, cantidad]
+    RecipeWithIngredients:
+      allOf:
+        - $ref: '#/components/schemas/Recipe'
+        - type: object
+          properties:
+            ingredientes:
+              type: array
+              items:
+                $ref: '#/components/schemas/PreparationIngredientWithIngredient'
+    RecipeExpanded:
+      allOf:
+        - $ref: '#/components/schemas/Recipe'
+        - type: object
+          properties:
+            producto:
+              type: object
+              properties:
+                id:
+                  type: integer
+                nombre:
+                  type: string
+            ingredientes:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  id_preparacion:
+                    type: integer
+                  id_ingrediente:
+                    type: integer
+                  cantidad:
+                    type: number
+                    format: float
+                  ingrediente:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      nombre:
+                        type: string
+                      unidad_medida:
+                        type: string
+    RecipeFull:
+      allOf:
+        - $ref: '#/components/schemas/Recipe'
+        - type: object
+          properties:
+            producto:
+              $ref: '#/components/schemas/Product'
+            ingredientes:
+              type: array
+              items:
+                $ref: '#/components/schemas/PreparationIngredientWithIngredient'
+    RecipeInput:
+      type: object
+      properties:
+        id_producto:
+          type: integer
+        ingredientes:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreparationIngredientInput'
+      required: [id_producto, ingredientes]
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_cliente:
+          type: integer
+        fecha_entrega:
+          type: string
+          format: date-time
+        estado:
+          type: integer
+      required: [id, id_cliente, fecha_entrega, estado]
+    OrderWithClient:
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          properties:
+            cliente:
+              $ref: '#/components/schemas/Client'
+    OrderSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        fecha_entrega:
+          type: string
+          format: date-time
+        estado:
+          type: integer
+        cliente:
+          type: object
+          properties:
+            id:
+              type: integer
+            nombre:
+              type: string
+            whatsapp:
+              type: integer
+    OrderClientSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        fecha_entrega:
+          type: string
+          format: date-time
+        estado:
+          type: integer
+        cliente:
+          type: object
+          properties:
+            id:
+              type: integer
+            nombre:
+              type: string
+    OrderStateSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre_cliente:
+          type: string
+        fecha_entrega:
+          type: string
+          format: date-time
+        total:
+          type: number
+          format: float
+    OrderFull:
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          properties:
+            cliente:
+              $ref: '#/components/schemas/Client'
+            lineas:
+              type: array
+              items:
+                $ref: '#/components/schemas/LineWithProduct'
+    OrderInput:
+      type: object
+      properties:
+        id_cliente:
+          type: integer
+        fecha_entrega:
+          type: string
+          format: date-time
+        estado:
+          type: integer
+      required: [id_cliente]
+    OrderUpdateInput:
+      type: object
+      properties:
+        id_cliente:
+          type: integer
+        fecha_entrega:
+          type: string
+          format: date-time
+        estado:
+          type: integer
+
+    Line:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_producto:
+          type: integer
+        cantidad:
+          type: integer
+        id_orden:
+          type: integer
+      required: [id, id_producto, cantidad, id_orden]
+    LineWithProduct:
+      allOf:
+        - $ref: '#/components/schemas/Line'
+        - type: object
+          properties:
+            producto:
+              $ref: '#/components/schemas/Product'
+    LineInput:
+      type: object
+      properties:
+        id_orden:
+          type: integer
+        id_producto:
+          type: integer
+        cantidad:
+          type: integer
+      required: [id_orden, id_producto, cantidad]
+    LineUpdateInput:
+      type: object
+      properties:
+        id_producto:
+          type: integer
+        cantidad:
+          type: integer
