@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { 
   searchOrders, 
   getOrderById, 
+  getOrderHistory,
   getOrdersByClient, 
   saveOrder, 
   updateOrder, 
@@ -17,6 +18,7 @@ router.post('/', saveOrder);
 
 router.get('/client/:clientId', getOrdersByClient);
 router.get('/state/:state', searchOrdersByState);
+router.get('/:id/history', getOrderHistory);
 router.get('/:id', getOrderById);
 router.put('/:id', updateOrder);
 router.delete('/:id', deleteOrder);

@@ -1,5 +1,3 @@
-
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
@@ -10,118 +8,125 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Cliente {
-  id        Int      @id @default(autoincrement())
-  nombre    String
-  whatsapp  Int      
-  ordenes   Orden[]  
-}
-
-model Producto {
-  id         Int                  @id @default(autoincrement())
-  nombre     String
-  precio     Float
-  id_categoria Int
-  categoria  Categoria            @relation(fields: [id_categoria], references: [id])
-  lineas     Linea[] 
-  
-  preparacion Preparacion?     
+  id       Int     @id @default(autoincrement())
+  nombre   String
+  whatsapp Int
+  ordenes  Orden[]
 }
 
 model Categoria {
-  id        Int       @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   nombre    String
-  productos Producto[] 
+  productos Producto[]
 }
 
-model Orden {
-  id             Int      @id @default(autoincrement())
-  id_cliente     Int
-  fecha_entrega  DateTime
-  estado         Int   
-  
-  cliente        Cliente  @relation(fields: [id_cliente], references: [id])
-  lineas         Linea[]
-}
-
-model Linea {
-  id          Int      @id @default(autoincrement())
-  id_producto Int
-  cantidad    Int
-  id_orden    Int
-  
-  orden       Orden    @relation(fields: [id_orden], references: [id])
-  producto    Producto @relation(fields: [id_producto], references: [id])
-}
-
-
-
-model Proveedor {
-  id       Int      @id @default(autoincrement())
-  nombre   String
-  compras  Compra[]
-}
-
-model Compra {
-  id             Int             @id @default(autoincrement())
-  id_proveedor   Int
-  fecha_compra   DateTime @default(now())
-  
-  proveedor      Proveedor       @relation(fields: [id_proveedor], references: [id])
-  detalles       Detalle_compra[]
-}
-
-model Detalle_compra {
-  id                Int      @id @default(autoincrement())
-  id_compra         Int
-  id_ingrediente   Int
-  cantidad          Float
-  precio_unitario   Float
-  subtotal          Float
-  
-  compra            Compra   @relation(fields: [id_compra], references: [id])
-  ingrediente       Ingrediente @relation(fields: [id_ingrediente], references: [id])
-  
-  lotes             Lote[]   
+model Producto {
+  id                                Int                         @id @default(autoincrement())
+  nombre                            String
+  precio                            Float
+  id_categoria                      Int
+  categoria                         Categoria                   @relation(fields: [id_categoria], references: [id])
+  lineas                            Linea[]
+  preparacion                       Preparacion?
+  movimientos_stock_detalle_producto Movimiento_Stock_Detalle[] @relation("MovimientoStockDetalleProducto")
 }
 
 model Ingrediente {
-  id        Int             @id @default(autoincrement())
-  nombre    String
-  unidad_medida String
-  detalles  Detalle_compra[] 
-  
- 
-  preparaciones Preparacion_Ingrediente[] 
+  id                                  Int                         @id @default(autoincrement())
+  nombre                              String
+  unidad_medida                       String
+  preparaciones                       Preparacion_Ingrediente[]
+  movimientos_stock_detalle_ingrediente Movimiento_Stock_Detalle[] @relation("MovimientoStockDetalleIngrediente")
 }
 
-model Lote {
-  id                Int      @id @default(autoincrement())
-  id_detalle_compra Int
-  cantidad_restante Float   @default(0)
-  
-  detalle_compra    Detalle_compra @relation(fields: [id_detalle_compra], references: [id])
+model Estado {
+  id               Int                      @id @default(autoincrement())
+  nombre           String                   @unique
+  es_final         Boolean                  @default(false)
+  ordenes_actuales Orden[]                  @relation("EstadoActualOrden")
+  historiales      Historial_Estado_Orden[]
 }
 
+model Orden {
+  id                Int                      @id @default(autoincrement())
+  id_cliente        Int
+  id_estado_actual  Int
+  metodo_pago       String
+  creacion          DateTime                 @default(now())
+  entrega_estimada  DateTime
+  entrega_real      DateTime?
+  cliente           Cliente                  @relation(fields: [id_cliente], references: [id])
+  estado_actual     Estado                   @relation("EstadoActualOrden", fields: [id_estado_actual], references: [id])
+  lineas            Linea[]
+  historial_estados Historial_Estado_Orden[]
+}
+
+model Historial_Estado_Orden {
+  id        Int      @id @default(autoincrement())
+  id_orden  Int
+  id_estado Int
+  inicio    DateTime @default(now())
+  fin       DateTime?
+  orden     Orden    @relation(fields: [id_orden], references: [id], onDelete: Cascade)
+  estado    Estado   @relation(fields: [id_estado], references: [id])
+}
+
+model Linea {
+  id             Int      @id @default(autoincrement())
+  id_orden       Int
+  id_producto    Int
+  cantidad       Decimal  @db.Decimal(10, 2)
+  subtotal       Decimal  @db.Decimal(10, 2)
+  precio_unitario Decimal @db.Decimal(10, 2)
+  orden          Orden    @relation(fields: [id_orden], references: [id], onDelete: Cascade)
+  producto       Producto @relation(fields: [id_producto], references: [id])
+}
+
+model Movimiento_Stock_Tipo {
+  id         Int                @id @default(autoincrement())
+  nombre     String             @unique
+  movimientos Movimiento_Stock[]
+}
+
+model Movimiento_Stock {
+  id                 Int                      @id @default(autoincrement())
+  id_tipo_movimiento Int
+  fecha              DateTime                 @default(now())
+  detalle            String?
+  tipo_movimiento    Movimiento_Stock_Tipo    @relation(fields: [id_tipo_movimiento], references: [id])
+  detalles           Movimiento_Stock_Detalle[]
+}
+
+model Movimiento_Stock_Detalle {
+  id             Int              @id @default(autoincrement())
+  id_movimiento  Int
+  id_ingrediente Int?
+  id_producto    Int?
+  cantidad       Decimal          @db.Decimal(10, 2)
+  subtotal       Decimal          @db.Decimal(10, 2)
+  precio_unitario Decimal         @db.Decimal(10, 2)
+  movimiento     Movimiento_Stock @relation(fields: [id_movimiento], references: [id], onDelete: Cascade)
+  ingrediente    Ingrediente?     @relation("MovimientoStockDetalleIngrediente", fields: [id_ingrediente], references: [id])
+  producto       Producto?        @relation("MovimientoStockDetalleProducto", fields: [id_producto], references: [id])
+}
 
 model Preparacion {
-  id          Int                   @id @default(autoincrement())
-  id_producto Int
-  producto    Producto              @relation(fields: [id_producto], references: [id], onDelete: Cascade)
-  ingredientes Preparacion_Ingrediente[] // Una preparación tiene muchos ingredientes
+  id           Int                      @id @default(autoincrement())
+  id_producto  Int
+  producto     Producto                 @relation(fields: [id_producto], references: [id], onDelete: Cascade)
+  ingredientes Preparacion_Ingrediente[]
 
-  @@unique([id_producto]) 
+  @@unique([id_producto])
 }
 
 model Preparacion_Ingrediente {
-  id               Int          @id @default(autoincrement())
-  id_preparacion   Int
-  id_ingrediente   Int
-  cantidad         Float  
-
-  preparacion      Preparacion  @relation(fields: [id_preparacion], references: [id], onDelete: Cascade)
-  ingrediente      Ingrediente  @relation(fields: [id_ingrediente], references: [id], onDelete: Cascade)
+  id             Int         @id @default(autoincrement())
+  id_preparacion Int
+  id_ingrediente Int
+  cantidad       Float
+  preparacion    Preparacion @relation(fields: [id_preparacion], references: [id], onDelete: Cascade)
+  ingrediente    Ingrediente @relation(fields: [id_ingrediente], references: [id], onDelete: Cascade)
 
   @@unique([id_preparacion, id_ingrediente])
 }

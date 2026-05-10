@@ -97,13 +97,18 @@ export const deleteIngredient = async (req: any, res: any) => {
   try {
     const { id } = req.params;
 
-    const hasDetails = await prisma.detalle_compra.findFirst({
-      where: { id_ingrediente: Number(id) }
-    });
+    const [usedInRecipes, usedInStock] = await Promise.all([
+      prisma.preparacion_Ingrediente.findFirst({
+        where: { id_ingrediente: Number(id) }
+      }),
+      prisma.movimiento_Stock_Detalle.findFirst({
+        where: { id_ingrediente: Number(id) }
+      })
+    ]);
 
-    if (hasDetails) {
+    if (usedInRecipes || usedInStock) {
       return res.status(400).json({ 
-        error: 'No se puede eliminar el ingrediente porque tiene registros de compra asociados.' 
+        error: 'No se puede eliminar el ingrediente porque tiene recetas o movimientos de stock asociados.' 
       });
     }
 

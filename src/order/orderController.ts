@@ -1,145 +1,326 @@
-// src/controllers/orderController.ts
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// 1. Buscar órdenes (Lista ligera: id, cliente, fecha, estado)
+const buildPaginationMeta = (total: number, page: number, pageSize: number) => ({
+  total,
+  page,
+  pageSize,
+  totalPages: Math.ceil(total / pageSize)
+});
+
+const mapOrderSummary = (order: any) => ({
+  id: order.id,
+  metodo_pago: order.metodo_pago,
+  creacion: order.creacion,
+  entrega_estimada: order.entrega_estimada,
+  entrega_real: order.entrega_real,
+  total: order.lineas.reduce((sum: number, line: any) => sum + Number(line.subtotal), 0),
+  cliente: order.cliente,
+  estado_actual: order.estado_actual
+});
+
+const baseOrderInclude = {
+  cliente: true,
+  estado_actual: true,
+  lineas: {
+    include: {
+      producto: true
+    }
+  },
+  historial_estados: {
+    include: {
+      estado: true
+    },
+    orderBy: {
+      inicio: 'desc' as const
+    }
+  }
+};
+
 export const searchOrders = async (req: any, res: any) => {
   try {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
     const skip = (page - 1) * pageSize;
 
-    const orders = await prisma.orden.findMany({
-      skip: skip,
-      take: pageSize,
-      select: {  // "Select" explícito para traer solo lo pedido
-        id: true,
-        fecha_entrega: true,
-        estado: true,
-        cliente: {
-          select: { id: true, nombre: true, whatsapp: true }
-        }
-      },
-      orderBy: { id: 'desc' }
-    });
-
-    const total = await prisma.orden.count();
+    const [orders, total] = await Promise.all([
+      prisma.orden.findMany({
+        skip,
+        take: pageSize,
+        include: {
+          cliente: {
+            select: { id: true, nombre: true, whatsapp: true }
+          },
+          estado_actual: true,
+          lineas: {
+            select: { subtotal: true }
+          }
+        },
+        orderBy: { id: 'desc' }
+      }),
+      prisma.orden.count()
+    ]);
 
     res.json({
-      data: orders,
-      meta: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
+      data: orders.map(mapOrderSummary),
+      meta: buildPaginationMeta(total, page, pageSize)
     });
   } catch (error) {
     res.status(500).json({ error: 'Error al buscar órdenes' });
   }
 };
 
-// 2. Obtener orden por ID (Trae todo + líneas y productos)
 export const getOrderById = async (req: any, res: any) => {
   try {
     const { id } = req.params;
 
     const order = await prisma.orden.findUnique({
       where: { id: Number(id) },
-      include: {
-        cliente: true,
-        lineas: {
-          include: {
-            producto: true // Trae los detalles del producto en cada línea
-          }
-        }
-      }
+      include: baseOrderInclude
     });
 
-    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+    if (!order) {
+      return res.status(404).json({ error: 'Orden no encontrada' });
+    }
 
-    res.json(order);
+    res.json({
+      ...order,
+      total: order.lineas.reduce((sum, line) => sum + Number(line.subtotal), 0)
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error al buscar orden' });
   }
 };
 
-// 3. Obtener órdenes por cliente (Lista ligera)
 export const getOrdersByClient = async (req: any, res: any) => {
   try {
     const { clientId } = req.params;
 
     const orders = await prisma.orden.findMany({
       where: { id_cliente: Number(clientId) },
-      select: {
-        id: true,
-        fecha_entrega: true,
-        estado: true,
-        cliente: { select: { id: true, nombre: true } }
+      include: {
+        cliente: {
+          select: { id: true, nombre: true, whatsapp: true }
+        },
+        estado_actual: true,
+        lineas: {
+          select: { subtotal: true }
+        }
       },
       orderBy: { id: 'desc' }
     });
 
-    res.json(orders);
+    res.json(orders.map(mapOrderSummary));
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener órdenes del cliente' });
   }
 };
 
-// 4. Crear nueva orden (SAVE)
-export const saveOrder = async (req: any, res: any) => {
+export const getOrderHistory = async (req: any, res: any) => {
   try {
-    const { id_cliente, fecha_entrega, estado } = req.body;
+    const { id } = req.params;
 
-    if (!id_cliente) {
-      return res.status(400).json({ error: 'El id_cliente es obligatorio' });
-    }
-
-    const newOrder = await prisma.orden.create({
-      data: {
-        id_cliente: Number(id_cliente),
-        fecha_entrega: fecha_entrega ? new Date(fecha_entrega) : new Date(),
-        estado: estado ? Number(estado) : 1 // 1 = Pendiente por defecto
-      },
-      include: { cliente: true }
+    const order = await prisma.orden.findUnique({
+      where: { id: Number(id) },
+      select: { id: true }
     });
 
-    res.status(201).json(newOrder);
+    if (!order) {
+      return res.status(404).json({ error: 'Orden no encontrada' });
+    }
+
+    const history = await prisma.historial_Estado_Orden.findMany({
+      where: { id_orden: Number(id) },
+      include: { estado: true },
+      orderBy: { inicio: 'desc' }
+    });
+
+    res.json(history);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener historial de la orden' });
+  }
+};
+
+export const saveOrder = async (req: any, res: any) => {
+  try {
+    const {
+      id_cliente,
+      id_estado_actual,
+      metodo_pago,
+      creacion,
+      entrega_estimada,
+      entrega_real
+    } = req.body;
+
+    if (!id_cliente || !id_estado_actual || !metodo_pago || !entrega_estimada) {
+      return res.status(400).json({
+        error: 'Los campos id_cliente, id_estado_actual, metodo_pago y entrega_estimada son obligatorios'
+      });
+    }
+
+    const [client, state] = await Promise.all([
+      prisma.cliente.findUnique({ where: { id: Number(id_cliente) } }),
+      prisma.estado.findUnique({ where: { id: Number(id_estado_actual) } })
+    ]);
+
+    if (!client) {
+      return res.status(404).json({ error: 'El cliente no existe' });
+    }
+
+    if (!state) {
+      return res.status(404).json({ error: 'El estado indicado no existe' });
+    }
+
+    const creationDate = creacion ? new Date(creacion) : new Date();
+    const realDeliveryDate = entrega_real
+      ? new Date(entrega_real)
+      : (state.es_final ? creationDate : null);
+
+    const newOrder = await prisma.$transaction(async (tx) => {
+      const order = await tx.orden.create({
+        data: {
+          id_cliente: Number(id_cliente),
+          id_estado_actual: Number(id_estado_actual),
+          metodo_pago: String(metodo_pago),
+          creacion: creationDate,
+          entrega_estimada: new Date(entrega_estimada),
+          entrega_real: realDeliveryDate
+        }
+      });
+
+      await tx.historial_Estado_Orden.create({
+        data: {
+          id_orden: order.id,
+          id_estado: Number(id_estado_actual),
+          inicio: creationDate
+        }
+      });
+
+      return tx.orden.findUnique({
+        where: { id: order.id },
+        include: baseOrderInclude
+      });
+    });
+
+    res.status(201).json({
+      ...newOrder,
+      total: 0
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error al crear orden' });
   }
 };
 
-// 5. Actualizar orden
 export const updateOrder = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { id_cliente, fecha_entrega, estado } = req.body;
+    const {
+      id_cliente,
+      id_estado_actual,
+      metodo_pago,
+      creacion,
+      entrega_estimada,
+      entrega_real
+    } = req.body;
 
-    const updatedOrder = await prisma.orden.update({
-      where: { id: Number(id) },
-      data: {
-        id_cliente: id_cliente ? Number(id_cliente) : undefined,
-        fecha_entrega: fecha_entrega ? new Date(fecha_entrega) : undefined,
-        estado: estado ? Number(estado) : undefined
-      },
-      include: { cliente: true }
+    const order = await prisma.orden.findUnique({
+      where: { id: Number(id) }
     });
 
-    res.json(updatedOrder);
+    if (!order) {
+      return res.status(404).json({ error: 'Orden no encontrada' });
+    }
+
+    if (id_cliente) {
+      const client = await prisma.cliente.findUnique({
+        where: { id: Number(id_cliente) }
+      });
+
+      if (!client) {
+        return res.status(404).json({ error: 'El cliente no existe' });
+      }
+    }
+
+    let requestedState = null;
+
+    if (id_estado_actual) {
+      requestedState = await prisma.estado.findUnique({
+        where: { id: Number(id_estado_actual) }
+      });
+
+      if (!requestedState) {
+        return res.status(404).json({ error: 'El estado indicado no existe' });
+      }
+    }
+
+    const updatedOrder = await prisma.$transaction(async (tx) => {
+      const nextStateId = id_estado_actual ? Number(id_estado_actual) : order.id_estado_actual;
+      const stateChanged = nextStateId !== order.id_estado_actual;
+      const transitionDate = entrega_real ? new Date(entrega_real) : new Date();
+      const nextRealDeliveryValue = Object.prototype.hasOwnProperty.call(req.body, 'entrega_real')
+        ? (entrega_real ? new Date(entrega_real) : null)
+        : (requestedState?.es_final && stateChanged ? transitionDate : undefined);
+
+      if (stateChanged) {
+        await tx.historial_Estado_Orden.updateMany({
+          where: {
+            id_orden: Number(id),
+            fin: null
+          },
+          data: {
+            fin: transitionDate
+          }
+        });
+      }
+
+      await tx.orden.update({
+        where: { id: Number(id) },
+        data: {
+          id_cliente: id_cliente ? Number(id_cliente) : undefined,
+          id_estado_actual: id_estado_actual ? Number(id_estado_actual) : undefined,
+          metodo_pago: metodo_pago !== undefined ? String(metodo_pago) : undefined,
+          creacion: creacion ? new Date(creacion) : undefined,
+          entrega_estimada: entrega_estimada ? new Date(entrega_estimada) : undefined,
+          entrega_real: nextRealDeliveryValue
+        }
+      });
+
+      if (stateChanged) {
+        await tx.historial_Estado_Orden.create({
+          data: {
+            id_orden: Number(id),
+            id_estado: nextStateId,
+            inicio: transitionDate
+          }
+        });
+      }
+
+      return tx.orden.findUnique({
+        where: { id: Number(id) },
+        include: baseOrderInclude
+      });
+    });
+
+    res.json({
+      ...updatedOrder,
+      total: updatedOrder?.lineas.reduce((sum, line) => sum + Number(line.subtotal), 0) ?? 0
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar orden' });
   }
 };
 
-// 6. Eliminar orden
 export const deleteOrder = async (req: any, res: any) => {
   try {
     const { id } = req.params;
 
-    // Verificar si tiene líneas
-    const hasLines = await prisma.linea.findFirst({
-      where: { id_orden: Number(id) }
+    const order = await prisma.orden.findUnique({
+      where: { id: Number(id) }
     });
 
-    if (hasLines) {
-      return res.status(400).json({ error: 'No se puede eliminar la orden porque tiene líneas asociadas.' });
+    if (!order) {
+      return res.status(404).json({ error: 'Orden no encontrada' });
     }
 
     await prisma.orden.delete({
@@ -152,62 +333,39 @@ export const deleteOrder = async (req: any, res: any) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
 export const searchOrdersByState = async (req: any, res: any) => {
   try {
-    const { state } = req.params; 
+    const { state } = req.params;
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
     const skip = (page - 1) * pageSize;
 
-    const ordersRaw = await prisma.orden.findMany({
-      skip: skip,
-      take: pageSize,
-      where: { 
-        estado: Number(state) 
-      },
-      include: {
-        cliente: true,
-        lineas: {
-          include: {
-            producto: true 
+    const where = {
+      id_estado_actual: Number(state)
+    };
+
+    const [orders, total] = await Promise.all([
+      prisma.orden.findMany({
+        skip,
+        take: pageSize,
+        where,
+        include: {
+          cliente: {
+            select: { id: true, nombre: true, whatsapp: true }
+          },
+          estado_actual: true,
+          lineas: {
+            select: { subtotal: true }
           }
-        }
-      },
-      orderBy: { id: 'desc' }
-    });
-
-    const ordersFormatted = ordersRaw.map((orden: any) => {
-      const totalPedido = orden.lineas.reduce((sum: number, linea: any) => {
-
-        const precio = linea.producto?.precio || 0;
-        return sum + (linea.cantidad * precio);
-      }, 0);
-
-      return {
-        id: orden.id,
-        nombre_cliente: orden.cliente.nombre,
-        fecha_entrega: orden.fecha_entrega,
-        total: totalPedido
-      };
-    });
-
-    const total = await prisma.orden.count({ where: { estado: Number(state) } });
+        },
+        orderBy: { id: 'desc' }
+      }),
+      prisma.orden.count({ where })
+    ]);
 
     res.json({
-      data: ordersFormatted,
-      meta: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
+      data: orders.map(mapOrderSummary),
+      meta: buildPaginationMeta(total, page, pageSize)
     });
   } catch (error) {
     res.status(500).json({ error: 'Error al buscar órdenes por estado' });

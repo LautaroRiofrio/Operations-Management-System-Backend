@@ -50,6 +50,7 @@ export const getProductById = async (req: any, res: any) => {
       include: {
         categoria: true,
         lineas: true,
+        movimientos_stock_detalle_producto: true,
         preparacion: {
           include: {
             ingredientes: { include: { ingrediente: true } }
@@ -143,13 +144,18 @@ export const deleteProduct = async (req: any, res: any) => {
   try {
     const { id } = req.params;
 
-    const hasOrders = await prisma.linea.findFirst({
-      where: { id_producto: Number(id) }
-    });
+    const [hasOrders, hasStockMovements] = await Promise.all([
+      prisma.linea.findFirst({
+        where: { id_producto: Number(id) }
+      }),
+      prisma.movimiento_Stock_Detalle.findFirst({
+        where: { id_producto: Number(id) }
+      })
+    ]);
 
-    if (hasOrders) {
+    if (hasOrders || hasStockMovements) {
       return res.status(400).json({ 
-        error: 'No se puede eliminar el producto porque tiene órdenes asociadas.' 
+        error: 'No se puede eliminar el producto porque tiene órdenes o movimientos de stock asociados.' 
       });
     }
 

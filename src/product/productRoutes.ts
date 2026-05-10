@@ -11,8 +11,8 @@ import {
 const router = Router();
 
 router.get('/', searchProducts);
-router.get('/:id', getProductById);
 router.get('/category/:categoryId', getProductsByCategory);
+router.get('/:id', getProductById);
 router.put('/:id', updateProduct);
 router.delete('/:id', deleteProduct);
 router.post('/', saveProduct);

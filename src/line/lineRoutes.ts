@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { 
   searchLinesByOrder, 
+  getLineById,
   saveLine, 
   updateLine, 
   deleteLine 
@@ -16,7 +17,7 @@ router.get('/order/:orderId', searchLinesByOrder);
 router.post('/', saveLine);
 
 // Por ID (para actualizar/borrar)
-router.get('/:id', (req, res) => res.status(501).json({ message: 'Use searchLinesByOrder' })); // Opcional
+router.get('/:id', getLineById);
 router.put('/:id', updateLine);
 router.delete('/:id', deleteLine);
 

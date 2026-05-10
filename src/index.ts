@@ -1,16 +1,15 @@
 // src/index.ts
 import express, { Request, Response } from 'express';
 import clientRoutes from './client/clientRoutes'; 
-import providerRoutes from './provider/providerRoutes';
-import purchaseRoutes from './purchase/purchaseRoutes'
 import ingredientRoutes from './ingredient/ingredientRoutes'
-import purchaseDetailRouter from './purchaseDetail/purchaseDetailRoutes'
-import batchRoutes from './batch/batchRoutes'
 import productRoutes from './product/productRoutes'
 import categoryRoutes from './category/categoryRoutes'
 import recipeRoutes from './recipe/recipeRoutes'
 import orderRoutes from './order/orderRoutes'
 import lineRoutes from './line/lineRoutes'
+import stateRoutes from './state/stateRoutes'
+import stockMovementTypeRoutes from './stockMovementType/stockMovementTypeRoutes'
+import stockMovementRoutes from './stockMovement/stockMovementRoutes'
 
 const app = express();
 const PORT = 3000;
@@ -25,16 +24,15 @@ app.get('/', (req: Request, res: Response) => {
 
 // Rutas de la API
 app.use('/api/clients', clientRoutes);
-app.use('/api/provider', providerRoutes);
-app.use('/api/purchase', purchaseRoutes);
 app.use('/api/ingredient', ingredientRoutes);
-app.use('/api/purchaseDetail', purchaseDetailRouter);
-app.use('/api/batch', batchRoutes);
 app.use('/api/product', productRoutes);
 app.use('/api/category', categoryRoutes)
 app.use('/api/recipe', recipeRoutes)
 app.use('/api/order', orderRoutes)
 app.use('/api/line', lineRoutes)
+app.use('/api/state', stateRoutes)
+app.use('/api/stockMovementType', stockMovementTypeRoutes)
+app.use('/api/stockMovement', stockMovementRoutes)
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);

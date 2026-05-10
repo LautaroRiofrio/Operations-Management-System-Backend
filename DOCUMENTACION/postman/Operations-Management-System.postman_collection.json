@@ -1,0 +1,1805 @@
+{
+  "info": {
+    "_postman_id": "0d2d6c50-6448-4b17-91f7-7bcbd2c9b001",
+    "name": "Operations Management System API",
+    "description": "Coleccion completa de Postman generada a partir de las rutas y controladores actuales del proyecto. Incluye variables, ejemplos de payload y scripts para guardar IDs comunes en variables de colecci?n.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "clientId",
+      "value": "1"
+    },
+    {
+      "key": "ingredientId",
+      "value": "1"
+    },
+    {
+      "key": "categoryId",
+      "value": "1"
+    },
+    {
+      "key": "productId",
+      "value": "1"
+    },
+    {
+      "key": "recipeId",
+      "value": "1"
+    },
+    {
+      "key": "stateId",
+      "value": "1"
+    },
+    {
+      "key": "orderId",
+      "value": "1"
+    },
+    {
+      "key": "lineId",
+      "value": "1"
+    },
+    {
+      "key": "stockMovementTypeId",
+      "value": "1"
+    },
+    {
+      "key": "stockMovementId",
+      "value": "1"
+    },
+    {
+      "key": "page",
+      "value": "1"
+    },
+    {
+      "key": "pageSize",
+      "value": "10"
+    },
+    {
+      "key": "search",
+      "value": ""
+    },
+    {
+      "key": "dateNow",
+      "value": "2026-05-10T12:00:00.000Z"
+    },
+    {
+      "key": "estimatedDelivery",
+      "value": "2026-05-11T18:00:00.000Z"
+    },
+    {
+      "key": "realDelivery",
+      "value": "2026-05-11T19:00:00.000Z"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Verifica que la API este funcionando.",
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": []
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "GET /api/clients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista clientes con paginacion.",
+            "url": {
+              "raw": "{{baseUrl}}/api/clients?page={{page}}&pageSize={{pageSize}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clients"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/clients",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea un cliente.",
+            "url": {
+              "raw": "{{baseUrl}}/api/clients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clients"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente Demo\",\n  \"whatsapp\": 5491123456789\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('clientId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/clients/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene un cliente por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/{{clientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clients",
+                "{{clientId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ingredients",
+      "item": [
+        {
+          "name": "GET /api/ingredient",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista ingredientes con paginacion y filtro por nombre.",
+            "url": {
+              "raw": "{{baseUrl}}/api/ingredient?page={{page}}&pageSize={{pageSize}}&q={{search}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ingredient"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                },
+                {
+                  "key": "q",
+                  "value": "{{search}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ingredient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea un ingrediente.",
+            "url": {
+              "raw": "{{baseUrl}}/api/ingredient",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ingredient"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Harina 000\",\n  \"unidad_medida\": \"kg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('ingredientId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/ingredient/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene un ingrediente por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/ingredient/{{ingredientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ingredient",
+                "{{ingredientId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/ingredient/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Actualiza un ingrediente.",
+            "url": {
+              "raw": "{{baseUrl}}/api/ingredient/{{ingredientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ingredient",
+                "{{ingredientId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Harina 0000\",\n  \"unidad_medida\": \"kg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/ingredient/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina un ingrediente.",
+            "url": {
+              "raw": "{{baseUrl}}/api/ingredient/{{ingredientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ingredient",
+                "{{ingredientId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "GET /api/category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista categorias con paginacion y filtro por nombre.",
+            "url": {
+              "raw": "{{baseUrl}}/api/category?page={{page}}&pageSize={{pageSize}}&q={{search}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "category"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                },
+                {
+                  "key": "q",
+                  "value": "{{search}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea una categoria.",
+            "url": {
+              "raw": "{{baseUrl}}/api/category",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "category"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Panificados\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('categoryId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/category/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene una categoria con sus productos.",
+            "url": {
+              "raw": "{{baseUrl}}/api/category/{{categoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "category",
+                "{{categoryId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/category/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Actualiza una categoria.",
+            "url": {
+              "raw": "{{baseUrl}}/api/category/{{categoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "category",
+                "{{categoryId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Panaderia\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/category/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina una categoria.",
+            "url": {
+              "raw": "{{baseUrl}}/api/category/{{categoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "category",
+                "{{categoryId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "GET /api/product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista productos con paginacion y filtro por nombre.",
+            "url": {
+              "raw": "{{baseUrl}}/api/product?page={{page}}&pageSize={{pageSize}}&q={{search}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "product"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                },
+                {
+                  "key": "q",
+                  "value": "{{search}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea un producto.",
+            "url": {
+              "raw": "{{baseUrl}}/api/product",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "product"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Pan de molde\",\n  \"id_categoria\": \"{{categoryId}}\",\n  \"precio\": 2500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('productId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/product/category/:categoryId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista productos de una categoria.",
+            "url": {
+              "raw": "{{baseUrl}}/api/product/category/{{categoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "product",
+                "category",
+                "{{categoryId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/product/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene un producto por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/product/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "product",
+                "{{productId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/product/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Actualiza un producto.",
+            "url": {
+              "raw": "{{baseUrl}}/api/product/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "product",
+                "{{productId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Pan de molde grande\",\n  \"id_categoria\": \"{{categoryId}}\",\n  \"precio\": 2900\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/product/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina un producto.",
+            "url": {
+              "raw": "{{baseUrl}}/api/product/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "product",
+                "{{productId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Recipes",
+      "item": [
+        {
+          "name": "GET /api/recipe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista recetas con paginacion.",
+            "url": {
+              "raw": "{{baseUrl}}/api/recipe?page={{page}}&pageSize={{pageSize}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipe"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/recipe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea una receta para un producto.",
+            "url": {
+              "raw": "{{baseUrl}}/api/recipe",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipe"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_producto\": \"{{productId}}\",\n  \"ingredientes\": [\n    {\n      \"id_ingrediente\": \"{{ingredientId}}\",\n      \"cantidad\": 0.5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('recipeId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/recipe/product/:productId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene la receta de un producto.",
+            "url": {
+              "raw": "{{baseUrl}}/api/recipe/product/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipe",
+                "product",
+                "{{productId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/recipe/ingredients/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene solo los ingredientes de una receta.",
+            "url": {
+              "raw": "{{baseUrl}}/api/recipe/ingredients/{{recipeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipe",
+                "ingredients",
+                "{{recipeId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/recipe/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene una receta por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/recipe/{{recipeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipe",
+                "{{recipeId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/recipe/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Reemplaza los ingredientes de una receta.",
+            "url": {
+              "raw": "{{baseUrl}}/api/recipe/{{recipeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipe",
+                "{{recipeId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ingredientes\": [\n    {\n      \"id_ingrediente\": \"{{ingredientId}}\",\n      \"cantidad\": 0.75\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/recipe/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina una receta.",
+            "url": {
+              "raw": "{{baseUrl}}/api/recipe/{{recipeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recipe",
+                "{{recipeId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "States",
+      "item": [
+        {
+          "name": "GET /api/state",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista estados con paginacion y filtro por nombre.",
+            "url": {
+              "raw": "{{baseUrl}}/api/state?page={{page}}&pageSize={{pageSize}}&q={{search}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "state"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                },
+                {
+                  "key": "q",
+                  "value": "{{search}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/state",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea un estado.",
+            "url": {
+              "raw": "{{baseUrl}}/api/state",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "state"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Pendiente\",\n  \"es_final\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('stateId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/state/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene un estado por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/state/{{stateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "state",
+                "{{stateId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/state/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Actualiza un estado.",
+            "url": {
+              "raw": "{{baseUrl}}/api/state/{{stateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "state",
+                "{{stateId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"En produccion\",\n  \"es_final\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/state/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina un estado.",
+            "url": {
+              "raw": "{{baseUrl}}/api/state/{{stateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "state",
+                "{{stateId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "GET /api/order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista ordenes con paginacion.",
+            "url": {
+              "raw": "{{baseUrl}}/api/order?page={{page}}&pageSize={{pageSize}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea una orden y genera su primer historial de estado.",
+            "url": {
+              "raw": "{{baseUrl}}/api/order",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_cliente\": \"{{clientId}}\",\n  \"id_estado_actual\": \"{{stateId}}\",\n  \"metodo_pago\": \"Transferencia\",\n  \"creacion\": \"{{dateNow}}\",\n  \"entrega_estimada\": \"{{estimatedDelivery}}\",\n  \"entrega_real\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('orderId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/order/client/:clientId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista ordenes de un cliente.",
+            "url": {
+              "raw": "{{baseUrl}}/api/order/client/{{clientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order",
+                "client",
+                "{{clientId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/order/state/:state",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista ordenes por estado actual con paginacion.",
+            "url": {
+              "raw": "{{baseUrl}}/api/order/state/{{stateId}}?page={{page}}&pageSize={{pageSize}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order",
+                "state",
+                "{{stateId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/order/:id/history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene el historial de estados de una orden.",
+            "url": {
+              "raw": "{{baseUrl}}/api/order/{{orderId}}/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order",
+                "{{orderId}}",
+                "history"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/order/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene una orden por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/order/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order",
+                "{{orderId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/order/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Actualiza una orden y, si cambia el estado, agrega historial.",
+            "url": {
+              "raw": "{{baseUrl}}/api/order/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order",
+                "{{orderId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_cliente\": \"{{clientId}}\",\n  \"id_estado_actual\": \"{{stateId}}\",\n  \"metodo_pago\": \"Efectivo\",\n  \"entrega_estimada\": \"{{estimatedDelivery}}\",\n  \"entrega_real\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/order/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina una orden.",
+            "url": {
+              "raw": "{{baseUrl}}/api/order/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order",
+                "{{orderId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Lines",
+      "item": [
+        {
+          "name": "GET /api/line/order/:orderId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista las lineas de una orden.",
+            "url": {
+              "raw": "{{baseUrl}}/api/line/order/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line",
+                "order",
+                "{{orderId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/line",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea una linea de orden. Si no mandas precio_unitario o subtotal, el backend los calcula.",
+            "url": {
+              "raw": "{{baseUrl}}/api/line",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_orden\": \"{{orderId}}\",\n  \"id_producto\": \"{{productId}}\",\n  \"cantidad\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('lineId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/line/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene una linea por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/line/{{lineId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line",
+                "{{lineId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/line/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Actualiza una linea.",
+            "url": {
+              "raw": "{{baseUrl}}/api/line/{{lineId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line",
+                "{{lineId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_orden\": \"{{orderId}}\",\n  \"id_producto\": \"{{productId}}\",\n  \"cantidad\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/line/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina una linea.",
+            "url": {
+              "raw": "{{baseUrl}}/api/line/{{lineId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line",
+                "{{lineId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Stock Movement Types",
+      "item": [
+        {
+          "name": "GET /api/stockMovementType",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista tipos de movimiento con paginacion y filtro por nombre.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovementType?page={{page}}&pageSize={{pageSize}}&q={{search}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovementType"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                },
+                {
+                  "key": "q",
+                  "value": "{{search}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/stockMovementType",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea un tipo de movimiento de stock.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovementType",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovementType"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ingreso manual\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('stockMovementTypeId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/stockMovementType/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene un tipo por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovementType/{{stockMovementTypeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovementType",
+                "{{stockMovementTypeId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/stockMovementType/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Actualiza un tipo por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovementType/{{stockMovementTypeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovementType",
+                "{{stockMovementTypeId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ajuste manual\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/stockMovementType/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina un tipo si no tiene movimientos asociados.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovementType/{{stockMovementTypeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovementType",
+                "{{stockMovementTypeId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Stock Movements",
+      "item": [
+        {
+          "name": "GET /api/stockMovement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista movimientos de stock con filtros opcionales.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovement?page={{page}}&pageSize={{pageSize}}&typeId={{stockMovementTypeId}}&ingredientId={{ingredientId}}&productId={{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovement"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "{{pageSize}}",
+                  "disabled": false
+                },
+                {
+                  "key": "typeId",
+                  "value": "{{stockMovementTypeId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "ingredientId",
+                  "value": "{{ingredientId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "productId",
+                  "value": "{{productId}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/stockMovement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea un movimiento de stock con uno o mas detalles.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovement",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovement"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_tipo_movimiento\": \"{{stockMovementTypeId}}\",\n  \"fecha\": \"{{dateNow}}\",\n  \"detalle\": \"Ingreso inicial de insumos\",\n  \"detalles\": [\n    {\n      \"id_ingrediente\": \"{{ingredientId}}\",\n      \"cantidad\": 10,\n      \"subtotal\": 15000,\n      \"precio_unitario\": 1500\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id !== undefined) {",
+                  "    pm.collectionVariables.set('stockMovementId', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/stockMovement/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene un movimiento por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovement/{{stockMovementId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovement",
+                "{{stockMovementId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/stockMovement/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Actualiza un movimiento y reemplaza detalles si los envias.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovement/{{stockMovementId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovement",
+                "{{stockMovementId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_tipo_movimiento\": \"{{stockMovementTypeId}}\",\n  \"fecha\": \"{{dateNow}}\",\n  \"detalle\": \"Ajuste de stock\",\n  \"detalles\": [\n    {\n      \"id_producto\": \"{{productId}}\",\n      \"cantidad\": 2,\n      \"subtotal\": 5800,\n      \"precio_unitario\": 2900\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/stockMovement/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina un movimiento de stock.",
+            "url": {
+              "raw": "{{baseUrl}}/api/stockMovement/{{stockMovementId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stockMovement",
+                "{{stockMovementId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
