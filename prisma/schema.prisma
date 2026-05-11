@@ -53,9 +53,9 @@ model Orden {
   id_cliente        Int
   id_estado_actual  Int
   metodo_pago       String
-  creacion          DateTime                 @default(now())
-  entrega_estimada  DateTime
-  entrega_real      DateTime?
+  creacion          DateTime                 @default(now()) @db.Timestamptz(3)
+  entrega_estimada  DateTime                 @db.Timestamptz(3)
+  entrega_real      DateTime?                @db.Timestamptz(3)
   cliente           Cliente                  @relation(fields: [id_cliente], references: [id])
   estado_actual     Estado                   @relation("EstadoActualOrden", fields: [id_estado_actual], references: [id])
   lineas            Linea[]
@@ -66,8 +66,8 @@ model Historial_Estado_Orden {
   id        Int      @id @default(autoincrement())
   id_orden  Int
   id_estado Int
-  inicio    DateTime @default(now())
-  fin       DateTime?
+  inicio    DateTime @default(now()) @db.Timestamptz(3)
+  fin       DateTime? @db.Timestamptz(3)
   orden     Orden    @relation(fields: [id_orden], references: [id], onDelete: Cascade)
   estado    Estado   @relation(fields: [id_estado], references: [id])
 }
@@ -92,7 +92,7 @@ model Movimiento_Stock_Tipo {
 model Movimiento_Stock {
   id                 Int                      @id @default(autoincrement())
   id_tipo_movimiento Int
-  fecha              DateTime                 @default(now())
+  fecha              DateTime                 @default(now()) @db.Timestamptz(3)
   detalle            String?
   tipo_movimiento    Movimiento_Stock_Tipo    @relation(fields: [id_tipo_movimiento], references: [id])
   detalles           Movimiento_Stock_Detalle[]

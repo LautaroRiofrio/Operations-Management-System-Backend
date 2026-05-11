@@ -17,6 +17,7 @@ tags:
   - name: Recipes
   - name: States
   - name: Orders
+  - name: Metrics
   - name: Lines
   - name: Stock Movement Types
   - name: Stock Movements
@@ -834,6 +835,69 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /api/metrics/total-billing:
+    get:
+      tags: [Metrics]
+      summary: Calcula la facturación total de órdenes entregadas
+      description: |
+        Suma el total de todas las órdenes cuyo estado actual sea "entregado".
+        Si no se envían fechas, usa por defecto desde el primer día del mes actual hasta el momento actual.
+        Además de `startDate` y `endDate`, el backend también acepta `fechaDesde`/`fechaHasta` y `from`/`to`.
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Facturación total calculada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalBillingMetric'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/metrics/average-ticket:
+    get:
+      tags: [Metrics]
+      summary: Calcula el ticket promedio de órdenes entregadas
+      description: |
+        Divide la facturación total por la cantidad de órdenes cuyo estado actual sea "entregado".
+        Si no se envían fechas, usa por defecto desde el primer día del mes actual hasta el momento actual.
+        Además de `startDate` y `endDate`, el backend también acepta `fechaDesde`/`fechaHasta` y `from`/`to`.
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Ticket promedio calculado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AverageTicketMetric'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/metrics/delivery-time-concentration:
+    get:
+      tags: [Metrics]
+      summary: Agrupa órdenes no finales por horario estimado de entrega
+      description: |
+        Toma la `entrega_estimada` de todas las órdenes cuyo estado actual no sea final
+        y devuelve la cantidad de órdenes por cada una de las 24 franjas horarias.
+      responses:
+        '200':
+          description: Concentración por horario de entrega
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryTimeConcentrationMetric'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
   /api/line:
     post:
       tags: [Lines]
@@ -1204,6 +1268,22 @@ components:
       required: true
       schema:
         type: integer
+    StartDate:
+      name: startDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Fecha inicial del rango a consultar.
+    EndDate:
+      name: endDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Fecha final del rango a consultar.
 
   responses:
     InternalError:
@@ -1652,6 +1732,68 @@ components:
               items:
                 $ref: '#/components/schemas/OrderStatusHistoryEntry'
           required: [total, cliente, estado_actual, lineas, historial_estados]
+
+    MetricDateRange:
+      type: object
+      properties:
+        fecha_desde:
+          type: string
+          format: date-time
+        fecha_hasta:
+          type: string
+          format: date-time
+        rango_por_defecto:
+          type: boolean
+      required: [fecha_desde, fecha_hasta, rango_por_defecto]
+
+    TotalBillingMetric:
+      allOf:
+        - $ref: '#/components/schemas/MetricDateRange'
+        - type: object
+          properties:
+            total_facturacion:
+              type: number
+              format: float
+            cantidad_ordenes:
+              type: integer
+          required: [total_facturacion, cantidad_ordenes]
+
+    AverageTicketMetric:
+      allOf:
+        - $ref: '#/components/schemas/MetricDateRange'
+        - type: object
+          properties:
+            ticket_promedio:
+              type: number
+              format: float
+            total_facturacion:
+              type: number
+              format: float
+            cantidad_ordenes:
+              type: integer
+          required: [ticket_promedio, total_facturacion, cantidad_ordenes]
+
+    DeliveryHourConcentration:
+      type: object
+      properties:
+        hora:
+          type: integer
+          minimum: 0
+          maximum: 23
+        cantidad_ordenes:
+          type: integer
+      required: [hora, cantidad_ordenes]
+
+    DeliveryTimeConcentrationMetric:
+      type: object
+      properties:
+        total_ordenes_no_finales:
+          type: integer
+        concentracion_por_horario:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryHourConcentration'
+      required: [total_ordenes_no_finales, concentracion_por_horario]
 
     Line:
       type: object

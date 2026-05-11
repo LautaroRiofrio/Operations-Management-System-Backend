@@ -1,4 +1,5 @@
 // src/index.ts
+import './config/timezone';
 import express, { Request, Response } from 'express';
 import clientRoutes from './client/clientRoutes'; 
 import ingredientRoutes from './ingredient/ingredientRoutes'
@@ -10,6 +11,7 @@ import lineRoutes from './line/lineRoutes'
 import stateRoutes from './state/stateRoutes'
 import stockMovementTypeRoutes from './stockMovementType/stockMovementTypeRoutes'
 import stockMovementRoutes from './stockMovement/stockMovementRoutes'
+import metricsRoutes from './metrics/metricsRoutes'
 
 const app = express();
 const PORT = 3000;
@@ -33,6 +35,7 @@ app.use('/api/line', lineRoutes)
 app.use('/api/state', stateRoutes)
 app.use('/api/stockMovementType', stockMovementTypeRoutes)
 app.use('/api/stockMovement', stockMovementRoutes)
+app.use('/api/metrics', metricsRoutes)
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);

@@ -1,4 +1,9 @@
 import { PrismaClient } from '@prisma/client';
+import {
+  formatArgentinaDateTime,
+  getCurrentArgentinaDate,
+  parseArgentinaDateTime
+} from '../utils/argentinaDateTime';
 
 const prisma = new PrismaClient();
 
@@ -12,12 +17,26 @@ const buildPaginationMeta = (total: number, page: number, pageSize: number) => (
 const mapOrderSummary = (order: any) => ({
   id: order.id,
   metodo_pago: order.metodo_pago,
-  creacion: order.creacion,
-  entrega_estimada: order.entrega_estimada,
-  entrega_real: order.entrega_real,
+  creacion: formatArgentinaDateTime(order.creacion),
+  entrega_estimada: formatArgentinaDateTime(order.entrega_estimada),
+  entrega_real: formatArgentinaDateTime(order.entrega_real),
   total: order.lineas.reduce((sum: number, line: any) => sum + Number(line.subtotal), 0),
   cliente: order.cliente,
   estado_actual: order.estado_actual
+});
+
+const mapHistoryEntry = (history: any) => ({
+  ...history,
+  inicio: formatArgentinaDateTime(history.inicio),
+  fin: formatArgentinaDateTime(history.fin)
+});
+
+const mapOrderWithDates = (order: any) => ({
+  ...order,
+  creacion: formatArgentinaDateTime(order.creacion),
+  entrega_estimada: formatArgentinaDateTime(order.entrega_estimada),
+  entrega_real: formatArgentinaDateTime(order.entrega_real),
+  historial_estados: order.historial_estados?.map(mapHistoryEntry)
 });
 
 const baseOrderInclude = {
@@ -85,7 +104,7 @@ export const getOrderById = async (req: any, res: any) => {
     }
 
     res.json({
-      ...order,
+      ...mapOrderWithDates(order),
       total: order.lineas.reduce((sum, line) => sum + Number(line.subtotal), 0)
     });
   } catch (error) {
@@ -136,7 +155,7 @@ export const getOrderHistory = async (req: any, res: any) => {
       orderBy: { inicio: 'desc' }
     });
 
-    res.json(history);
+    res.json(history.map(mapHistoryEntry));
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener historial de la orden' });
   }
@@ -172,9 +191,9 @@ export const saveOrder = async (req: any, res: any) => {
       return res.status(404).json({ error: 'El estado indicado no existe' });
     }
 
-    const creationDate = creacion ? new Date(creacion) : new Date();
+    const creationDate = creacion ? parseArgentinaDateTime(creacion) : getCurrentArgentinaDate();
     const realDeliveryDate = entrega_real
-      ? new Date(entrega_real)
+      ? parseArgentinaDateTime(entrega_real)
       : (state.es_final ? creationDate : null);
 
     const newOrder = await prisma.$transaction(async (tx) => {
@@ -184,7 +203,7 @@ export const saveOrder = async (req: any, res: any) => {
           id_estado_actual: Number(id_estado_actual),
           metodo_pago: String(metodo_pago),
           creacion: creationDate,
-          entrega_estimada: new Date(entrega_estimada),
+          entrega_estimada: parseArgentinaDateTime(entrega_estimada),
           entrega_real: realDeliveryDate
         }
       });
@@ -204,7 +223,7 @@ export const saveOrder = async (req: any, res: any) => {
     });
 
     res.status(201).json({
-      ...newOrder,
+      ...mapOrderWithDates(newOrder),
       total: 0
     });
   } catch (error) {
@@ -257,9 +276,9 @@ export const updateOrder = async (req: any, res: any) => {
     const updatedOrder = await prisma.$transaction(async (tx) => {
       const nextStateId = id_estado_actual ? Number(id_estado_actual) : order.id_estado_actual;
       const stateChanged = nextStateId !== order.id_estado_actual;
-      const transitionDate = entrega_real ? new Date(entrega_real) : new Date();
+      const transitionDate = entrega_real ? parseArgentinaDateTime(entrega_real) : getCurrentArgentinaDate();
       const nextRealDeliveryValue = Object.prototype.hasOwnProperty.call(req.body, 'entrega_real')
-        ? (entrega_real ? new Date(entrega_real) : null)
+        ? (entrega_real ? parseArgentinaDateTime(entrega_real) : null)
         : (requestedState?.es_final && stateChanged ? transitionDate : undefined);
 
       if (stateChanged) {
@@ -280,8 +299,8 @@ export const updateOrder = async (req: any, res: any) => {
           id_cliente: id_cliente ? Number(id_cliente) : undefined,
           id_estado_actual: id_estado_actual ? Number(id_estado_actual) : undefined,
           metodo_pago: metodo_pago !== undefined ? String(metodo_pago) : undefined,
-          creacion: creacion ? new Date(creacion) : undefined,
-          entrega_estimada: entrega_estimada ? new Date(entrega_estimada) : undefined,
+          creacion: creacion ? parseArgentinaDateTime(creacion) : undefined,
+          entrega_estimada: entrega_estimada ? parseArgentinaDateTime(entrega_estimada) : undefined,
           entrega_real: nextRealDeliveryValue
         }
       });
@@ -303,7 +322,7 @@ export const updateOrder = async (req: any, res: any) => {
     });
 
     res.json({
-      ...updatedOrder,
+      ...mapOrderWithDates(updatedOrder),
       total: updatedOrder?.lineas.reduce((sum, line) => sum + Number(line.subtotal), 0) ?? 0
     });
   } catch (error) {

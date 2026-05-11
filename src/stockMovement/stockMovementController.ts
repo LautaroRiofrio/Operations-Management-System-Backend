@@ -1,4 +1,9 @@
 import { PrismaClient } from '@prisma/client';
+import {
+  formatArgentinaDateTime,
+  getCurrentArgentinaDate,
+  parseArgentinaDateTime
+} from '../utils/argentinaDateTime';
 
 const prisma = new PrismaClient();
 
@@ -18,6 +23,11 @@ const stockMovementInclude = {
     }
   }
 };
+
+const mapMovementWithDates = (movement: any) => ({
+  ...movement,
+  fecha: formatArgentinaDateTime(movement.fecha)
+});
 
 const validateMovementDetails = async (details: any[]) => {
   if (!Array.isArray(details) || details.length === 0) {
@@ -103,7 +113,7 @@ export const searchStockMovements = async (req: any, res: any) => {
     ]);
 
     res.json({
-      data: movements,
+      data: movements.map(mapMovementWithDates),
       meta: buildPaginationMeta(total, page, pageSize)
     });
   } catch (error) {
@@ -124,7 +134,7 @@ export const getStockMovementById = async (req: any, res: any) => {
       return res.status(404).json({ error: 'Movimiento de stock no encontrado' });
     }
 
-    res.json(movement);
+    res.json(mapMovementWithDates(movement));
   } catch (error) {
     res.status(500).json({ error: 'Error al buscar movimiento de stock' });
   }
@@ -155,7 +165,7 @@ export const saveStockMovement = async (req: any, res: any) => {
     const movement = await prisma.movimiento_Stock.create({
       data: {
         id_tipo_movimiento: Number(id_tipo_movimiento),
-        fecha: fecha ? new Date(fecha) : new Date(),
+        fecha: fecha ? parseArgentinaDateTime(fecha) : getCurrentArgentinaDate(),
         detalle: detalle !== undefined ? String(detalle) : null,
         detalles: {
           create: mapDetailsForCreate(detalles)
@@ -164,7 +174,7 @@ export const saveStockMovement = async (req: any, res: any) => {
       include: stockMovementInclude
     });
 
-    res.status(201).json(movement);
+    res.status(201).json(mapMovementWithDates(movement));
   } catch (error) {
     res.status(500).json({ error: 'Error al crear movimiento de stock' });
   }
@@ -206,7 +216,7 @@ export const updateStockMovement = async (req: any, res: any) => {
         where: { id: Number(id) },
         data: {
           id_tipo_movimiento: id_tipo_movimiento ? Number(id_tipo_movimiento) : undefined,
-          fecha: fecha ? new Date(fecha) : undefined,
+          fecha: fecha ? parseArgentinaDateTime(fecha) : undefined,
           detalle: detalle !== undefined ? String(detalle) : undefined
         }
       });
@@ -232,7 +242,7 @@ export const updateStockMovement = async (req: any, res: any) => {
       });
     });
 
-    res.json(updatedMovement);
+    res.json(mapMovementWithDates(updatedMovement));
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar movimiento de stock' });
   }
