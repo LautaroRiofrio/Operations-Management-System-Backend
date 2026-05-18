@@ -881,6 +881,66 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /api/metrics/average-time-by-state:
+    get:
+      tags: [Metrics]
+      summary: Calcula el tiempo promedio por estado no final en órdenes entregadas
+      description: |
+        Toma las órdenes entregadas dentro del período indicado por `startDate` y `endDate`
+        y calcula cuánto tiempo permaneció cada orden en cada estado no final.
+        Luego devuelve el promedio por estado.
+        Si no se envían fechas, usa por defecto desde el primer día del mes actual hasta el momento actual.
+        Además de `startDate` y `endDate`, el backend también acepta `fechaDesde`/`fechaHasta` y `from`/`to`.
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Tiempo promedio por estado calculado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AverageTimeByStateMetric'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/metrics/state-details/{stateId}:
+    get:
+      tags: [Metrics]
+      summary: Lista el detalle de permanencias en un estado para órdenes entregadas
+      description: |
+        Toma las órdenes entregadas dentro del período indicado por `startDate` y `endDate`
+        y devuelve cada ocurrencia del estado indicado en esas órdenes.
+        Para cada coincidencia informa la orden, el inicio y fin del estado, y el tiempo que permaneció en él.
+        Si no se envían fechas, usa por defecto desde el primer día del mes actual hasta el momento actual.
+        Además de `startDate` y `endDate`, el backend también acepta `fechaDesde`/`fechaHasta` y `from`/`to`.
+      parameters:
+        - name: stateId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del estado a consultar.
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Detalle de permanencias encontrado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StateDurationDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
   /api/metrics/delivery-time-concentration:
     get:
       tags: [Metrics]
@@ -1772,6 +1832,84 @@ components:
             cantidad_ordenes:
               type: integer
           required: [ticket_promedio, total_facturacion, cantidad_ordenes]
+
+    StateAverageTime:
+      type: object
+      properties:
+        id_estado:
+          type: integer
+        estado:
+          type: string
+        promedio_minutos:
+          type: number
+          format: float
+        promedio_formateado:
+          type: string
+          example: "00:27:00"
+        cantidad_registros:
+          type: integer
+      required: [id_estado, estado, promedio_minutos, promedio_formateado, cantidad_registros]
+
+    AverageTimeByStateMetric:
+      allOf:
+        - $ref: '#/components/schemas/MetricDateRange'
+        - type: object
+          properties:
+            cantidad_ordenes:
+              type: integer
+            promedios_por_estado:
+              type: array
+              items:
+                $ref: '#/components/schemas/StateAverageTime'
+          required: [cantidad_ordenes, promedios_por_estado]
+
+    DeliveredOrderMetricSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        metodo_pago:
+          type: string
+        creacion:
+          type: string
+          format: date-time
+        entrega_estimada:
+          type: string
+          format: date-time
+        entrega_real:
+          type: string
+          format: date-time
+          nullable: true
+        total:
+          type: number
+          format: float
+        cliente:
+          $ref: '#/components/schemas/Client'
+        estado_actual:
+          $ref: '#/components/schemas/State'
+      required: [id, metodo_pago, creacion, entrega_estimada, total, cliente, estado_actual]
+
+    StateDurationDetail:
+      type: object
+      properties:
+        orden_id:
+          type: integer
+        inicio:
+          type: string
+          format: date-time
+        fin:
+          type: string
+          format: date-time
+          nullable: true
+        tiempo:
+          type: number
+          format: float
+          nullable: true
+        tiempo_formateado:
+          type: string
+          nullable: true
+          example: "00:27:00"
+      required: [orden_id, inicio, fin, tiempo, tiempo_formateado]
 
     DeliveryHourConcentration:
       type: object

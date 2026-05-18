@@ -3,12 +3,27 @@ import {
   formatArgentinaDateTime,
   getArgentinaDayBounds,
   getArgentinaHour,
-  getArgentinaMonthRange
+  getArgentinaMonthRange,
+  parseArgentinaDateTime
 } from '../utils/argentinaDateTime';
 
 const prisma = new PrismaClient();
 
 const DELIVERED_STATE_NAME = 'entregado';
+const MILLISECONDS_PER_MINUTE = 60 * 1000;
+
+const formatDuration = (durationInMs: number) => {
+  const totalSeconds = Math.floor(durationInMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return [
+    String(hours).padStart(2, '0'),
+    String(minutes).padStart(2, '0'),
+    String(seconds).padStart(2, '0')
+  ].join(':');
+};
 
 const getDateRangeFromQuery = (query: any) => {
   const startDateRaw = query.startDate ?? query.fechaDesde ?? query.from;
@@ -67,6 +82,51 @@ const buildDeliveredOrdersWhere = (startDate: Date, endDate: Date) => ({
     lte: endDate
   }
 });
+
+const getDateTimeRangeFromQuery = (query: any) => {
+  const startDateRaw = query.startDate ?? query.fechaDesde ?? query.from;
+  const endDateRaw = query.endDate ?? query.fechaHasta ?? query.to;
+
+  if ((startDateRaw && !endDateRaw) || (!startDateRaw && endDateRaw)) {
+    return {
+      error: 'Debes enviar ambas fechas o ninguna.'
+    };
+  }
+
+  if (!startDateRaw && !endDateRaw) {
+    const { startDate, endDate } = getArgentinaMonthRange();
+
+    return {
+      startDate,
+      endDate,
+      usedDefaultRange: true
+    };
+  }
+
+  let startDate: Date;
+  let endDate: Date;
+
+  try {
+    startDate = parseArgentinaDateTime(startDateRaw);
+    endDate = parseArgentinaDateTime(endDateRaw);
+  } catch (error) {
+    return {
+      error: 'Las fechas enviadas no son validas.'
+    };
+  }
+
+  if (startDate > endDate) {
+    return {
+      error: 'La fecha desde no puede ser mayor a la fecha hasta.'
+    };
+  }
+
+  return {
+    startDate,
+    endDate,
+    usedDefaultRange: false
+  };
+};
 
 const calculateOrderTotal = (order: any) =>
   order.lineas.reduce((sum: number, line: any) => sum + Number(line.subtotal), 0);
@@ -164,5 +224,222 @@ export const getDeliveryTimeConcentration = async (req: any, res: any) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Error al calcular la concentración por horario de entrega' });
+  }
+};
+
+export const getAverageTimeByState = async (req: any, res: any) => {
+  try {
+    const dateRange = getDateTimeRangeFromQuery(req.query);
+
+    if (dateRange.error) {
+      return res.status(400).json({ error: dateRange.error });
+    }
+
+    const orders = await prisma.orden.findMany({
+      where: buildDeliveredOrdersWhere(dateRange.startDate, dateRange.endDate),
+      select: {
+        id: true
+      }
+    });
+
+    if (orders.length === 0) {
+      return res.json({
+        cantidad_ordenes: 0,
+        fecha_desde: formatArgentinaDateTime(dateRange.startDate),
+        fecha_hasta: formatArgentinaDateTime(dateRange.endDate),
+        rango_por_defecto: dateRange.usedDefaultRange,
+        promedios_por_estado: []
+      });
+    }
+
+    const histories = await prisma.historial_Estado_Orden.findMany({
+      where: {
+        id_orden: {
+          in: orders.map((order) => order.id)
+        },
+        estado: {
+          es_final: false
+        }
+      },
+      include: {
+        estado: {
+          select: {
+            id: true,
+            nombre: true
+          }
+        }
+      },
+      orderBy: [
+        { id_orden: 'asc' },
+        { inicio: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    const groupedHistories = new Map<number, typeof histories>();
+
+    histories.forEach((history) => {
+      const orderHistories = groupedHistories.get(history.id_orden) ?? [];
+      orderHistories.push(history);
+      groupedHistories.set(history.id_orden, orderHistories);
+    });
+
+    const stateDurations = new Map<number, {
+      id_estado: number;
+      estado: string;
+      total_duration_ms: number;
+      cantidad_registros: number;
+    }>();
+
+    groupedHistories.forEach((orderHistories) => {
+      orderHistories.forEach((history, index) => {
+        const nextHistory = orderHistories[index + 1];
+        const endDate = history.fin ?? nextHistory?.inicio;
+
+        if (!endDate) {
+          return;
+        }
+
+        const durationInMs = endDate.getTime() - history.inicio.getTime();
+
+        if (durationInMs < 0) {
+          return;
+        }
+
+        const currentStateDuration = stateDurations.get(history.estado.id) ?? {
+          id_estado: history.estado.id,
+          estado: history.estado.nombre,
+          total_duration_ms: 0,
+          cantidad_registros: 0
+        };
+
+        currentStateDuration.total_duration_ms += durationInMs;
+        currentStateDuration.cantidad_registros += 1;
+
+        stateDurations.set(history.estado.id, currentStateDuration);
+      });
+    });
+
+    const promediosPorEstado = Array.from(stateDurations.values())
+      .sort((a, b) => a.id_estado - b.id_estado)
+      .map((stateDuration) => {
+        const promedioEnMs = stateDuration.total_duration_ms / stateDuration.cantidad_registros;
+
+        return {
+          id_estado: stateDuration.id_estado,
+          estado: stateDuration.estado,
+          promedio_minutos: Number((promedioEnMs / MILLISECONDS_PER_MINUTE).toFixed(2)),
+          promedio_formateado: formatDuration(promedioEnMs),
+          cantidad_registros: stateDuration.cantidad_registros
+        };
+      });
+
+    res.json({
+      cantidad_ordenes: orders.length,
+      fecha_desde: formatArgentinaDateTime(dateRange.startDate),
+      fecha_hasta: formatArgentinaDateTime(dateRange.endDate),
+      rango_por_defecto: dateRange.usedDefaultRange,
+      promedios_por_estado: promediosPorEstado
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al calcular el tiempo promedio por estado' });
+  }
+};
+
+export const getDeliveredOrdersStateDetails = async (req: any, res: any) => {
+  try {
+    const { stateId } = req.params;
+    const parsedStateId = Number(stateId);
+
+    if (!Number.isInteger(parsedStateId) || parsedStateId <= 0) {
+      return res.status(400).json({ error: 'El estado indicado no es valido.' });
+    }
+
+    const dateRange = getDateTimeRangeFromQuery(req.query);
+
+    if (dateRange.error) {
+      return res.status(400).json({ error: dateRange.error });
+    }
+
+    const state = await prisma.estado.findUnique({
+      where: { id: parsedStateId },
+      select: {
+        id: true,
+        nombre: true,
+        es_final: true
+      }
+    });
+
+    if (!state) {
+      return res.status(404).json({ error: 'El estado indicado no existe.' });
+    }
+
+    const orders = await prisma.orden.findMany({
+      where: buildDeliveredOrdersWhere(dateRange.startDate, dateRange.endDate),
+      include: {
+        historial_estados: {
+          include: {
+            estado: {
+              select: {
+                id: true,
+                nombre: true
+              }
+            }
+          },
+          orderBy: [
+            { inicio: 'asc' },
+            { id: 'asc' }
+          ]
+        }
+      },
+      orderBy: {
+        id: 'desc'
+      }
+    });
+
+    const ordersWithMatchingState = orders.filter((order) =>
+      order.historial_estados.some((history) => history.id_estado === parsedStateId)
+    );
+
+    const detalles = ordersWithMatchingState.flatMap((order) =>
+      order.historial_estados
+        .filter((history) => history.id_estado === parsedStateId)
+        .map((history) => {
+          const currentIndex = order.historial_estados.findIndex((item) => item.id === history.id);
+          const nextHistory = currentIndex >= 0
+            ? order.historial_estados[currentIndex + 1]
+            : undefined;
+
+        let endDate = history.fin;
+
+        if (!endDate) {
+          endDate = nextHistory?.inicio ?? null;
+        }
+
+        const durationInMs = endDate
+          ? endDate.getTime() - history.inicio.getTime()
+          : null;
+
+          const safeDurationInMs = durationInMs !== null && durationInMs >= 0
+            ? durationInMs
+            : null;
+
+        return {
+          orden_id: order.id,
+          inicio: formatArgentinaDateTime(history.inicio),
+          fin: formatArgentinaDateTime(endDate),
+          tiempo: safeDurationInMs !== null
+            ? Number((safeDurationInMs / MILLISECONDS_PER_MINUTE).toFixed(2))
+            : null,
+          tiempo_formateado: safeDurationInMs !== null
+            ? formatDuration(safeDurationInMs)
+            : null
+        };
+        })
+    );
+
+    res.json(detalles);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al buscar el detalle de órdenes por estado' });
   }
 };
