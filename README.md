@@ -16,11 +16,6 @@ docker compose up --build -d
 docker compose exec api npx prisma migrate deploy
 ```
 
-## Que hace cada comando
-
-- `docker compose up --build -d`: construye y levanta los contenedores de la API y la base de datos.
-- `docker compose exec api npx prisma migrate deploy`: aplica las migraciones de Prisma sobre la base de datos.
-
 ## Accesos
 
 - API: `http://localhost:3000`
