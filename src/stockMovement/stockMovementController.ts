@@ -16,6 +16,7 @@ const buildPaginationMeta = (total: number, page: number, pageSize: number) => (
 
 const stockMovementInclude = {
   tipo_movimiento: true,
+  orden: true,
   detalles: {
     include: {
       ingrediente: true,
@@ -83,6 +84,22 @@ const mapDetailsForCreate = (details: any[]) =>
     precio_unitario: Number(detail.precio_unitario)
   }));
 
+const validateOrderId = async (orderId: any) => {
+  if (orderId === undefined || orderId === null) {
+    return null;
+  }
+
+  const order = await prisma.orden.findUnique({
+    where: { id: Number(orderId) }
+  });
+
+  if (!order) {
+    return `La orden ${orderId} no existe.`;
+  }
+
+  return null;
+};
+
 export const searchStockMovements = async (req: any, res: any) => {
   try {
     const page = Number(req.query.page) || 1;
@@ -91,6 +108,7 @@ export const searchStockMovements = async (req: any, res: any) => {
 
     const where: any = {
       id_tipo_movimiento: req.query.typeId ? Number(req.query.typeId) : undefined,
+      id_order: req.query.orderId ? Number(req.query.orderId) : undefined,
       detalles: req.query.ingredientId || req.query.productId
         ? {
             some: {
@@ -142,7 +160,7 @@ export const getStockMovementById = async (req: any, res: any) => {
 
 export const saveStockMovement = async (req: any, res: any) => {
   try {
-    const { id_tipo_movimiento, fecha, detalle, detalles } = req.body;
+    const { id_tipo_movimiento, id_order, fecha, detalles } = req.body;
 
     if (!id_tipo_movimiento) {
       return res.status(400).json({ error: 'El id_tipo_movimiento es obligatorio' });
@@ -156,6 +174,12 @@ export const saveStockMovement = async (req: any, res: any) => {
       return res.status(404).json({ error: 'El tipo de movimiento no existe' });
     }
 
+    const orderValidationError = await validateOrderId(id_order);
+
+    if (orderValidationError) {
+      return res.status(404).json({ error: orderValidationError });
+    }
+
     const detailValidationError = await validateMovementDetails(detalles);
 
     if (detailValidationError) {
@@ -165,8 +189,8 @@ export const saveStockMovement = async (req: any, res: any) => {
     const movement = await prisma.movimiento_Stock.create({
       data: {
         id_tipo_movimiento: Number(id_tipo_movimiento),
+        id_order: id_order !== undefined && id_order !== null ? Number(id_order) : null,
         fecha: fecha ? parseArgentinaDateTime(fecha) : getCurrentArgentinaDate(),
-        detalle: detalle !== undefined ? String(detalle) : null,
         detalles: {
           create: mapDetailsForCreate(detalles)
         }
@@ -183,7 +207,7 @@ export const saveStockMovement = async (req: any, res: any) => {
 export const updateStockMovement = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { id_tipo_movimiento, fecha, detalle, detalles } = req.body;
+    const { id_tipo_movimiento, id_order, fecha, detalles } = req.body;
 
     const movement = await prisma.movimiento_Stock.findUnique({
       where: { id: Number(id) }
@@ -203,6 +227,12 @@ export const updateStockMovement = async (req: any, res: any) => {
       }
     }
 
+    const orderValidationError = await validateOrderId(id_order);
+
+    if (orderValidationError) {
+      return res.status(404).json({ error: orderValidationError });
+    }
+
     if (detalles !== undefined) {
       const detailValidationError = await validateMovementDetails(detalles);
 
@@ -216,8 +246,8 @@ export const updateStockMovement = async (req: any, res: any) => {
         where: { id: Number(id) },
         data: {
           id_tipo_movimiento: id_tipo_movimiento ? Number(id_tipo_movimiento) : undefined,
+          id_order: id_order !== undefined ? (id_order !== null ? Number(id_order) : null) : undefined,
           fecha: fecha ? parseArgentinaDateTime(fecha) : undefined,
-          detalle: detalle !== undefined ? String(detalle) : undefined
         }
       });
 

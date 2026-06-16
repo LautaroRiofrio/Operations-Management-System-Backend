@@ -1,10 +1,13 @@
 openapi: 3.0.3
 info:
   title: Operations Management System API
-  version: 2.0.0
+  version: 2.1.0
   description: |
     Especificación OpenAPI actualizada según las rutas y controladores vigentes del proyecto.
     Esta versión ya no incluye proveedores, compras, detalles de compra ni lotes.
+    Verificada contra `src/index.ts` y los routers vigentes el 2026-06-15.
+    Endpoints sincronizados: clients, ingredient, product, category, recipe, order,
+    line, state, stockMovementType, stockMovement y metrics.
 servers:
   - url: http://localhost:3000
     description: Servidor local por defecto
@@ -1181,6 +1184,11 @@ paths:
           schema:
             type: integer
           description: Filtra por movimientos que contengan el producto indicado
+        - name: orderId
+          in: query
+          schema:
+            type: integer
+          description: Filtra por movimientos asociados a la orden indicada
       responses:
         '200':
           description: Movimientos de stock paginados
@@ -2111,12 +2119,12 @@ components:
           type: integer
         id_tipo_movimiento:
           type: integer
+        id_order:
+          type: integer
+          nullable: true
         fecha:
           type: string
           format: date-time
-        detalle:
-          type: string
-          nullable: true
       required: [id, id_tipo_movimiento, fecha]
 
     StockMovementCreateInput:
@@ -2124,12 +2132,12 @@ components:
       properties:
         id_tipo_movimiento:
           type: integer
+        id_order:
+          type: integer
+          nullable: true
         fecha:
           type: string
           format: date-time
-        detalle:
-          type: string
-          nullable: true
         detalles:
           type: array
           items:
@@ -2141,12 +2149,12 @@ components:
       properties:
         id_tipo_movimiento:
           type: integer
+        id_order:
+          type: integer
+          nullable: true
         fecha:
           type: string
           format: date-time
-        detalle:
-          type: string
-          nullable: true
         detalles:
           type: array
           items:
@@ -2159,6 +2167,10 @@ components:
           properties:
             tipo_movimiento:
               $ref: '#/components/schemas/StockMovementType'
+            orden:
+              nullable: true
+              allOf:
+                - $ref: '#/components/schemas/OrderSummary'
             detalles:
               type: array
               items:

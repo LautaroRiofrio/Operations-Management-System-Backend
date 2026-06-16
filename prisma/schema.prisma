@@ -60,6 +60,7 @@ model Orden {
   estado_actual     Estado                   @relation("EstadoActualOrden", fields: [id_estado_actual], references: [id])
   lineas            Linea[]
   historial_estados Historial_Estado_Orden[]
+  movimientos_stock Movimiento_Stock[]
 }
 
 model Historial_Estado_Orden {
@@ -92,9 +93,10 @@ model Movimiento_Stock_Tipo {
 model Movimiento_Stock {
   id                 Int                      @id @default(autoincrement())
   id_tipo_movimiento Int
+  id_order           Int?
   fecha              DateTime                 @default(now()) @db.Timestamptz(3)
-  detalle            String?
   tipo_movimiento    Movimiento_Stock_Tipo    @relation(fields: [id_tipo_movimiento], references: [id])
+  orden              Orden?                   @relation(fields: [id_order], references: [id], onDelete: SetNull)
   detalles           Movimiento_Stock_Detalle[]
 }
 

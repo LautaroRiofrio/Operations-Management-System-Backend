@@ -1637,7 +1637,7 @@
             "header": [],
             "description": "Lista movimientos de stock con filtros opcionales.",
             "url": {
-              "raw": "{{baseUrl}}/api/stockMovement?page={{page}}&pageSize={{pageSize}}&typeId={{stockMovementTypeId}}&ingredientId={{ingredientId}}&productId={{productId}}",
+              "raw": "{{baseUrl}}/api/stockMovement?page={{page}}&pageSize={{pageSize}}&typeId={{stockMovementTypeId}}&ingredientId={{ingredientId}}&productId={{productId}}&orderId={{orderId}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1670,6 +1670,11 @@
                   "key": "productId",
                   "value": "{{productId}}",
                   "disabled": true
+                },
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}",
+                  "disabled": true
                 }
               ]
             }
@@ -1699,7 +1704,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id_tipo_movimiento\": \"{{stockMovementTypeId}}\",\n  \"fecha\": \"{{dateNow}}\",\n  \"detalle\": \"Ingreso inicial de insumos\",\n  \"detalles\": [\n    {\n      \"id_ingrediente\": \"{{ingredientId}}\",\n      \"cantidad\": 10,\n      \"subtotal\": 15000,\n      \"precio_unitario\": 1500\n    }\n  ]\n}",
+              "raw": "{\n  \"id_tipo_movimiento\": \"{{stockMovementTypeId}}\",\n  \"id_order\": \"{{orderId}}\",\n  \"fecha\": \"{{dateNow}}\",\n  \"detalles\": [\n    {\n      \"id_ingrediente\": \"{{ingredientId}}\",\n      \"cantidad\": 10,\n      \"subtotal\": 15000,\n      \"precio_unitario\": 1500\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1769,7 +1774,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id_tipo_movimiento\": \"{{stockMovementTypeId}}\",\n  \"fecha\": \"{{dateNow}}\",\n  \"detalle\": \"Ajuste de stock\",\n  \"detalles\": [\n    {\n      \"id_producto\": \"{{productId}}\",\n      \"cantidad\": 2,\n      \"subtotal\": 5800,\n      \"precio_unitario\": 2900\n    }\n  ]\n}",
+              "raw": "{\n  \"id_tipo_movimiento\": \"{{stockMovementTypeId}}\",\n  \"id_order\": \"{{orderId}}\",\n  \"fecha\": \"{{dateNow}}\",\n  \"detalles\": [\n    {\n      \"id_producto\": \"{{productId}}\",\n      \"cantidad\": 2,\n      \"subtotal\": 5800,\n      \"precio_unitario\": 2900\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
