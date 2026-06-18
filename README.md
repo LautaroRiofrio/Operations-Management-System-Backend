@@ -13,8 +13,9 @@ Desde la raiz del repositorio, ejecutar:
 
 ```bash
 docker compose up --build -d
-docker compose exec api npx prisma migrate deploy
 ```
+
+El servicio `api` ejecuta `npx prisma migrate deploy` automaticamente al iniciar, asi que los cambios de esquema pendientes se aplican solos al levantar los contenedores.
 
 ## Accesos
 

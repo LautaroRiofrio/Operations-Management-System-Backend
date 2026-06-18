@@ -884,6 +884,33 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /api/metrics/cost-and-profit:
+    get:
+      tags: [Metrics]
+      summary: Calcula costo, facturaciÃ³n y ganancia de Ã³rdenes entregadas y canceladas
+      description: |
+        Toma las Ã³rdenes cuyo estado actual sea "entregado" o "cancelado" dentro del perÃ­odo indicado.
+        El costo se calcula recorriendo lÃ­neas, productos, preparaciones e ingredientes, usando el campo
+        `costo` actual de cada ingrediente.
+        La facturaciÃ³n se calcula sumando los subtotales de detalles de movimientos de stock asociados
+        a esas Ã³rdenes que referencian productos.
+        Si no se envÃ­an fechas, usa por defecto desde el primer dÃ­a del mes actual hasta el momento actual.
+        AdemÃ¡s de `startDate` y `endDate`, el backend tambiÃ©n acepta `fechaDesde`/`fechaHasta` y `from`/`to`.
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: MÃ©trica de costos y ganancias calculada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostAndProfitMetric'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
   /api/metrics/average-time-by-state:
     get:
       tags: [Metrics]
@@ -904,6 +931,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AverageTimeByStateMetric'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/metrics/top-selling-products:
+    get:
+      tags: [Metrics]
+      summary: Lista los productos mas vendidos en ordenes entregadas
+      description: |
+        Busca todas las lineas de las ordenes cuyo estado actual sea "entregado"
+        dentro del periodo indicado por `startDate` y `endDate`, suma la cantidad
+        vendida por producto y cruza el resultado con toda la tabla de productos.
+        Devuelve tanto los productos vendidos como los que no registraron ventas.
+        Si no se envian fechas, usa por defecto desde el primer dia del mes actual hasta el momento actual.
+        Ademas de `startDate` y `endDate`, el backend tambien acepta `fechaDesde`/`fechaHasta` y `from`/`to`.
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Productos y cantidades vendidas calculados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopSellingProductsMetric'
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -1440,7 +1493,10 @@ components:
           type: string
         unidad_medida:
           type: string
-      required: [id, nombre, unidad_medida]
+        costo:
+          type: number
+          format: float
+      required: [id, nombre, unidad_medida, costo]
 
     IngredientInput:
       type: object
@@ -1449,6 +1505,9 @@ components:
           type: string
         unidad_medida:
           type: string
+        costo:
+          type: number
+          format: float
       required: [nombre, unidad_medida]
 
     Category:
@@ -1841,6 +1900,24 @@ components:
               type: integer
           required: [ticket_promedio, total_facturacion, cantidad_ordenes]
 
+    CostAndProfitMetric:
+      allOf:
+        - $ref: '#/components/schemas/MetricDateRange'
+        - type: object
+          properties:
+            costo:
+              type: number
+              format: float
+            facturacion:
+              type: number
+              format: float
+            ganancia:
+              type: number
+              format: float
+            cantidad_ordenes:
+              type: integer
+          required: [costo, facturacion, ganancia, cantidad_ordenes]
+
     StateAverageTime:
       type: object
       properties:
@@ -1870,6 +1947,38 @@ components:
               items:
                 $ref: '#/components/schemas/StateAverageTime'
           required: [cantidad_ordenes, promedios_por_estado]
+
+    TopSellingProduct:
+      type: object
+      properties:
+        id_producto:
+          type: integer
+        nombre:
+          type: string
+        precio:
+          type: number
+          format: float
+        id_categoria:
+          type: integer
+        cantidad_vendida:
+          type: number
+          format: float
+      required: [id_producto, nombre, precio, id_categoria, cantidad_vendida]
+
+    TopSellingProductsMetric:
+      allOf:
+        - $ref: '#/components/schemas/MetricDateRange'
+        - type: object
+          properties:
+            cantidad_productos:
+              type: integer
+            cantidad_productos_vendidos:
+              type: integer
+            productos:
+              type: array
+              items:
+                $ref: '#/components/schemas/TopSellingProduct'
+          required: [cantidad_productos, cantidad_productos_vendidos, productos]
 
     DeliveredOrderMetricSummary:
       type: object

@@ -264,7 +264,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Harina 000\",\n  \"unidad_medida\": \"kg\"\n}",
+              "raw": "{\n  \"nombre\": \"Harina 000\",\n  \"unidad_medida\": \"kg\",\n  \"costo\": 1200\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -334,7 +334,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Harina 0000\",\n  \"unidad_medida\": \"kg\"\n}",
+              "raw": "{\n  \"nombre\": \"Harina 0000\",\n  \"unidad_medida\": \"kg\",\n  \"costo\": 1300\n}",
               "options": {
                 "raw": {
                   "language": "json"

@@ -48,10 +48,15 @@ export const getIngredientById = async (req: any, res: any) => {
 
 export const saveIngredient = async (req: any, res: any) => {
   try {
-    const { nombre, unidad_medida } = req.body;
+    const { nombre, unidad_medida, costo } = req.body;
 
     if (!nombre || !unidad_medida) {
       return res.status(400).json({ error: 'El nombre y la unidad de medida son obligatorios' });
+    }
+
+    const parsedCost = costo === undefined ? undefined : Number(costo);
+    if (parsedCost !== undefined && (!Number.isFinite(parsedCost) || parsedCost < 0)) {
+      return res.status(400).json({ error: 'El costo debe ser un numero mayor o igual a 0' });
     }
 
     const exists = await prisma.ingrediente.findFirst({ where: { nombre } });
@@ -60,7 +65,7 @@ export const saveIngredient = async (req: any, res: any) => {
     }
 
     const newIngredient = await prisma.ingrediente.create({
-      data: { nombre, unidad_medida }
+      data: { nombre, unidad_medida, ...(parsedCost !== undefined ? { costo: parsedCost } : {}) }
     });
 
     res.status(201).json(newIngredient);
@@ -72,7 +77,12 @@ export const saveIngredient = async (req: any, res: any) => {
 export const updateIngredient = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { nombre, unidad_medida } = req.body;
+    const { nombre, unidad_medida, costo } = req.body;
+
+    const parsedCost = costo === undefined ? undefined : Number(costo);
+    if (parsedCost !== undefined && (!Number.isFinite(parsedCost) || parsedCost < 0)) {
+      return res.status(400).json({ error: 'El costo debe ser un numero mayor o igual a 0' });
+    }
 
     const ingredientExists = await prisma.ingrediente.findUnique({
       where: { id: Number(id) }
@@ -84,7 +94,7 @@ export const updateIngredient = async (req: any, res: any) => {
 
     const updatedIngredient = await prisma.ingrediente.update({
       where: { id: Number(id) },
-      data: { nombre, unidad_medida }
+      data: { nombre, unidad_medida, ...(parsedCost !== undefined ? { costo: parsedCost } : {}) }
     });
 
     res.json(updatedIngredient);

@@ -10,6 +10,7 @@ import {
 const prisma = new PrismaClient();
 
 const DELIVERED_STATE_NAME = 'entregado';
+const CANCELED_STATE_NAME = 'cancelado';
 const MILLISECONDS_PER_MINUTE = 60 * 1000;
 
 const formatDuration = (durationInMs: number) => {
@@ -83,6 +84,18 @@ const buildDeliveredOrdersWhere = (startDate: Date, endDate: Date) => ({
   }
 });
 
+const buildFinalizedOrdersWhere = (startDate: Date, endDate: Date) => ({
+  estado_actual: {
+    nombre: {
+      in: [DELIVERED_STATE_NAME, CANCELED_STATE_NAME]
+    }
+  },
+  entrega_real: {
+    gte: startDate,
+    lte: endDate
+  }
+});
+
 const getDateTimeRangeFromQuery = (query: any) => {
   const startDateRaw = query.startDate ?? query.fechaDesde ?? query.from;
   const endDateRaw = query.endDate ?? query.fechaHasta ?? query.to;
@@ -143,6 +156,73 @@ const findDeliveredOrders = async (startDate: Date, endDate: Date) =>
     }
   });
 
+export const getTopSellingProducts = async (req: any, res: any) => {
+  try {
+    const dateRange = getDateRangeFromQuery(req.query);
+
+    if (dateRange.error) {
+      return res.status(400).json({ error: dateRange.error });
+    }
+
+    const [soldProducts, allProducts] = await Promise.all([
+      prisma.linea.groupBy({
+        by: ['id_producto'],
+        where: {
+          orden: buildDeliveredOrdersWhere(dateRange.startDate, dateRange.endDate)
+        },
+        _sum: {
+          cantidad: true
+        }
+      }),
+      prisma.producto.findMany({
+        select: {
+          id: true,
+          nombre: true,
+          precio: true,
+          id_categoria: true
+        },
+        orderBy: {
+          nombre: 'asc'
+        }
+      })
+    ]);
+
+    const soldProductsMap = new Map(
+      soldProducts.map((product) => [
+        product.id_producto,
+        Number(product._sum.cantidad ?? 0)
+      ])
+    );
+
+    const productos = allProducts
+      .map((product) => ({
+        id_producto: product.id,
+        nombre: product.nombre,
+        precio: product.precio,
+        id_categoria: product.id_categoria,
+        cantidad_vendida: Number((soldProductsMap.get(product.id) ?? 0).toFixed(2))
+      }))
+      .sort((a, b) => {
+        if (b.cantidad_vendida !== a.cantidad_vendida) {
+          return b.cantidad_vendida - a.cantidad_vendida;
+        }
+
+        return a.nombre.localeCompare(b.nombre);
+      });
+
+    res.json({
+      fecha_desde: formatArgentinaDateTime(dateRange.startDate),
+      fecha_hasta: formatArgentinaDateTime(dateRange.endDate),
+      rango_por_defecto: dateRange.usedDefaultRange,
+      cantidad_productos: productos.length,
+      cantidad_productos_vendidos: productos.filter((product) => product.cantidad_vendida > 0).length,
+      productos
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al calcular la metrica de productos mas vendidos' });
+  }
+};
+
 export const getTotalBilling = async (req: any, res: any) => {
   try {
     const dateRange = getDateRangeFromQuery(req.query);
@@ -188,6 +268,94 @@ export const getAverageTicket = async (req: any, res: any) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Error al calcular el ticket promedio' });
+  }
+};
+
+export const getCostAndProfit = async (req: any, res: any) => {
+  try {
+    const dateRange = getDateRangeFromQuery(req.query);
+
+    if (dateRange.error) {
+      return res.status(400).json({ error: dateRange.error });
+    }
+
+    const orders = await prisma.orden.findMany({
+      where: buildFinalizedOrdersWhere(dateRange.startDate, dateRange.endDate),
+      include: {
+        lineas: {
+          select: {
+            cantidad: true,
+            producto: {
+              select: {
+                preparacion: {
+                  select: {
+                    ingredientes: {
+                      select: {
+                        cantidad: true,
+                        ingrediente: {
+                          select: {
+                            costo: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        movimientos_stock: {
+          select: {
+            detalles: {
+              where: {
+                id_producto: {
+                  not: null
+                }
+              },
+              select: {
+                subtotal: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const totalCost = orders.reduce((orderSum, order) => (
+      orderSum + order.lineas.reduce((lineSum, line) => {
+        const lineQuantity = Number(line.cantidad);
+        const recipeIngredients = line.producto.preparacion?.ingredientes ?? [];
+
+        const lineCost = recipeIngredients.reduce((ingredientSum, recipeIngredient) => {
+          const unitCost = Number(recipeIngredient.ingrediente.costo);
+          return ingredientSum + (lineQuantity * Number(recipeIngredient.cantidad) * unitCost);
+        }, 0);
+
+        return lineSum + lineCost;
+      }, 0)
+    ), 0);
+
+    const totalBilling = orders.reduce((orderSum, order) => (
+      orderSum + order.movimientos_stock.reduce((movementSum, movement) => (
+        movementSum + movement.detalles.reduce(
+          (detailSum, detail) => detailSum + Number(detail.subtotal),
+          0
+        )
+      ), 0)
+    ), 0);
+
+    res.json({
+      costo: Number(totalCost.toFixed(2)),
+      facturacion: Number(totalBilling.toFixed(2)),
+      ganancia: Number((totalBilling - totalCost).toFixed(2)),
+      cantidad_ordenes: orders.length,
+      fecha_desde: formatArgentinaDateTime(dateRange.startDate),
+      fecha_hasta: formatArgentinaDateTime(dateRange.endDate),
+      rango_por_defecto: dateRange.usedDefaultRange
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al calcular la metrica de costos y ganancias' });
   }
 };
 

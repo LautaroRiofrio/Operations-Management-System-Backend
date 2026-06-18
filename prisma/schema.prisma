@@ -36,6 +36,7 @@ model Ingrediente {
   id                                  Int                         @id @default(autoincrement())
   nombre                              String
   unidad_medida                       String
+  costo                               Decimal                     @default(0) @db.Decimal(10, 2)
   preparaciones                       Preparacion_Ingrediente[]
   movimientos_stock_detalle_ingrediente Movimiento_Stock_Detalle[] @relation("MovimientoStockDetalleIngrediente")
 }

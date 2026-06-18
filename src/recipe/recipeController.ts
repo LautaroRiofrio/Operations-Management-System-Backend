@@ -14,7 +14,7 @@ export const searchRecipes = async (req: any, res: any) => {
       include: {
         producto: { select: { id: true, nombre: true } },
         ingredientes: {
-          include: { ingrediente: { select: { id: true, nombre: true, unidad_medida: true } } }
+          include: { ingrediente: { select: { id: true, nombre: true, unidad_medida: true, costo: true } } }
         }
       },
       orderBy: { id: 'desc' }
